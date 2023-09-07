@@ -38,5 +38,6 @@ def main():
     create_events()
     create_contracts()
 
+
 if __name__ == '__main__':
     main()

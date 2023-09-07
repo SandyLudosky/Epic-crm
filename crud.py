@@ -140,6 +140,7 @@ def create_events():
     for event in events:
         event = Event(sales_contact_id=event["contact_id"],
                       support_contact_id=event["support_id"],
+                      name=event["name"],
                       start_date=event["start_date"],
                       end_date=event["end_date"],
                       location=event["location"],
