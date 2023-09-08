@@ -1,4 +1,5 @@
 from app.model import Contract, Event, Client, Collaborator
+from sqlalchemy import ForeignKey
 from app.config import session
 
 import datetime
@@ -7,27 +8,27 @@ collaborators = [
     {"name": 'Sandra Queen',
      "email": 'sandra@gmail.com',
      "phone": '444-340-211',
-     "role": "sales representative"},
+     "role": "sales"},
     {"name": 'Dalton T',
      "email": 'dalton@hotmal.com',
      "phone": '407-000-211',
-     "role": "sales representative"},
+     "role": "sales"},
     {"name": 'Daisy X',
      "email": 'daisy@hotmal.com',
      "phone": '416-340-211',
-     "role": "sales representative"},
+     "role": "sales"},
     {"name": 'Support Rep 1',
      "email": 'support1@gmail.com',
      "phone": '416-222-333',
-     "role": "client support"},
+     "role": "support"},
     {"name": 'Support Rep 2',
      "email": 'support2@gmail.com',
      "phone": '406-777-111',
-     "role": "client support"},
+     "role": "support"},
     {"name": 'Manager 1',
      "email": 'support2@gmail.com',
      "phone": '234-456-123',
-     "role": "account manager"},
+     "role": "manager"},
 ]
 
 clients = [
@@ -55,24 +56,24 @@ clients = [
 ]
 
 events = [
-    {"contact_id": 1,
-     "support_id": 2,
+    {"contact": 1,
+     "support": 2,
      "name": 'Event 1',
      "start_date": datetime.datetime(2003, 11, 8),
      "end_date": datetime.datetime(2003, 10, 8),
      "location": 'Montreal',
      "attendees": 100,
      "notes": "This is a note"},
-    {"contact_id": 2,
-     "support_id": 3,
+    {"contact": 2,
+     "support": 3,
      "name": 'Event 2',
      "start_date": datetime.datetime(1995, 2, 3),
      "end_date": datetime.datetime(1995, 2, 10),
      "location": 'Toronto',
      "attendees": 200,
      "notes": "This is a note"},
-    {"contact_id": 3,
-     "support_id": 3,
+    {"contact": 3,
+     "support": 3,
      "name": 'Event 3',
      "start_date": datetime.datetime(2015, 7, 1),
      "end_date": datetime.datetime(2015, 7, 3),
@@ -82,21 +83,24 @@ events = [
 ]
 
 contracts = [
-    {"client_id": 1,
-     "support_id": 2,
-     "event_id": 1,
+    {"client": 1,
+     "support": 2,
+     "event": 1,
      "created_at": datetime.datetime(2003, 9, 8),
-     "role": "created"},
-    {"client_id": 2,
-     "support_id": 2,
-     "event_id": 2,
+     "cost": 1000.20,
+     "status": 'created'},
+    {"client": 2,
+     "support": 2,
+     "event": 2,
      "created_at": datetime.datetime(1995, 2, 3),
-     "role": "created"},
-    {"client_id": 3,
-     "support_id": 3,
-     "event_id": 3,
+     "cost": 999.00,
+     "status": 'created'},
+    {"client": 3,
+     "support": 3,
+     "event": 3,
      "created_at": datetime.datetime(2015, 7, 1),
-     "role": "created"},
+     "cost": 199.00,
+     "status": 'created'},
 ]
 
 
@@ -125,12 +129,10 @@ def create_clients():
 
 def create_contracts():
     for contract in contracts:
-        contract = Contract(
-                              client_id=contract["client_id"],
-                              event_id=contract["event_id"],
-                              created_at=contract["created_at"],
-                              role=contract["role"]
-                                )
+        contract = Contract(client_id=contract["client"],
+                            event_id=contract["event"],
+                            created_at=contract["created_at"],
+                            status=contract["status"])
 
         session.add(contract)
         session.commit()
@@ -138,8 +140,7 @@ def create_contracts():
 
 def create_events():
     for event in events:
-        event = Event(sales_contact_id=event["contact_id"],
-                      support_contact_id=event["support_id"],
+        event = Event(support_contact_id=event["support"],
                       name=event["name"],
                       start_date=event["start_date"],
                       end_date=event["end_date"],

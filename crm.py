@@ -1,4 +1,3 @@
-from sqlalchemy import ForeignKey
 from app.model import Contract, Event, Client, Collaborator
 from app.config import session
 import click
@@ -15,6 +14,7 @@ def menu():
     print("[4] - create new contract")
     print("[5] - edit contract")
     print("[6] - display all contracts")
+    print("[7] - display all clients")
 
 # CRUD
 @click.command()
@@ -29,12 +29,15 @@ def selections(option):
     elif int(option) == 3:
         get_all_events()
     elif int(option) == 4:
+        display_clients_events()
         create_contract()
     elif int(option) == 5:
         get_all_contracts()
         edit_contract()
     elif int(option) == 6:
         get_all_contracts()
+    elif int(option) == 7:
+        get_all_clients()
     else:
         print("Invalid option")
 
@@ -43,12 +46,17 @@ def get_all_contracts():
     contracts = session.query(Contract).all()
     for contract in contracts:
         client = session.query(Client).filter(Client.id ==
-                                              int('contract.client_id')).first()
+                                              contract.client_id).first()
         event = session.query(Event).filter(Event.id ==
-                                            int('contract.event_id')).first()
-        print("id:", contract.id, ",", contract.created_at,
-              "client:", client.name, "event:",
-              event.name, "role:", contract.role)
+                                            contract.event_id).first()
+
+        support = session.query(Collaborator).filter(Collaborator.id
+                                                     == event.support_contact_id).first()
+
+        print("id:", contract.id, "\n", "Created on:", contract.created_at,
+              "\n", "client:", client.name, "\n",
+              "support: ", support.name, "\n",
+              "event:", event.name, "\n", "status:", contract.status)
     return contracts
 
 
@@ -60,6 +68,33 @@ def get_all_events():
               event.location, "attendees:", event.attendees,
               "notes:", event.notes)
     return events
+
+
+def get_all_clients():
+    clients = session.query(Client).all()
+    for client in clients:
+        print("id:", client.id, ",", "name:", client.name, "email:",
+              client.email, "phone:", client.phone, "company name:",
+              client.company_name, "created at:", client.created_at)
+    return clients
+
+
+def display_clients_events():
+    events = session.query(Event).all()
+    clients = session.query(Client).all()
+
+    print("======Events: ======")
+    for event in events:
+        print("id:", event.id, ",", "name:", event.name, "start:",
+              event.start_date, "end:", event.end_date, "location:",
+              event.location, "attendees:", event.attendees,
+              "notes:", event.notes)
+
+    print("======Clients: ======")
+    for client in clients:
+        print("id:", client.id, ",", "name:", client.name, "email:",
+              client.email, "phone:", client.phone, "company name:",
+              client.company_name, "created at:", client.created_at)
 
 
 @click.command()
@@ -80,6 +115,7 @@ def create_event(name, start, end, location, attendees, notes):
     session.commit()
 
 @click.command()
+@click.option('--id', prompt='select event to edit')
 @click.option('--name', prompt='name')
 @click.option('--start', prompt='start date')
 @click.option('--end', prompt='end date')
@@ -87,18 +123,39 @@ def create_event(name, start, end, location, attendees, notes):
 @click.option('--attendees', prompt='number of attendees')
 @click.option('--notes', prompt='notes or description')
 @click.option('--status', prompt='notes or description')
-def edit_event(name, start, end, location, attendees, notes, status):
-    pass
+def edit_event(id, name, start, end, location, attendees, notes, status):
+    event = session.query(Event).filter(Event.id == int(id)).first()
+    event.name = name
+    event.start = datetime.datetime.strptime(start, '%Y-%m-%d')
+    event.end = datetime.datetime.strptime(end, '%Y-%m-%d')
+    event.location = location
+    event.attendees = int(attendees)
+    event.notes = notes
+    event.status = status
+    session.commit()
+
 
 @click.command()
-@click.option('--id', prompt='select student to delete')
-def create_contract(id):
-    pass
+@click.option('--event_id', prompt='select event')
+@click.option('--client_id', prompt='select client')
+@click.option('--response', prompt='create contract ? [y/n]]')
+def create_contract(client_id, event_id, response):
+    contract = Contract(client_id=int(client_id), event_id=int(event_id),
+                        created_at=datetime.datetime.now())
+    if response == "y":
+        session.add(contract)
+        session.commit()
+
 
 @click.command()
-@click.option('--id', prompt='select student to delete')
-def edit_contract(id):
-    pass
+@click.option('--id', prompt='select contract to edit')
+@click.option('--event_id', prompt='select event')
+@click.option('--client_id', prompt='select client')
+def edit_contract(id, client_id, event_id):
+    contract = session.query(Contract).filter(Contract.id == int(id)).first()
+    contract.client_id = int(client_id)
+    contract.event_id = int(event_id)
+    session.commit()
 
 
 if __name__ == '__main__':
