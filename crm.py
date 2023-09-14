@@ -1,8 +1,9 @@
+import click
+import datetime
+
 from app.model import Contract, Event, Client, Collaborator
 from app.config import session
-import click
-
-import datetime
+from utils import display_contract_status
 
 
 def menu():
@@ -17,6 +18,8 @@ def menu():
     print("[7] - display all clients")
 
 # CRUD
+
+
 @click.command()
 @click.option('--option', prompt='Your choice',
               help='Select option')
@@ -56,7 +59,8 @@ def get_all_contracts():
         print("id:", contract.id, "\n", "Created on:", contract.created_at,
               "\n", "client:", client.name, "\n",
               "support: ", support.name, "\n",
-              "event:", event.name, "\n", "status:", contract.status)
+              "event:", event.name, "\n", "status:",
+              display_contract_status(contract.status))
     return contracts
 
 
@@ -113,6 +117,7 @@ def create_event(name, start, end, location, attendees, notes):
                   notes=notes)
     session.add(event)
     session.commit()
+
 
 @click.command()
 @click.option('--id', prompt='select event to edit')
