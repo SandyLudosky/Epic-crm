@@ -1,4 +1,4 @@
-from app.model import Contract, Event, Client, Collaborator
+from app.model import Contract, Event, Client, Collaborator, StatusEnum, RoleEnum
 from sqlalchemy import ForeignKey
 from app.config import session
 
@@ -8,27 +8,27 @@ collaborators = [
     {"name": 'Sandra Queen',
      "email": 'sandra@gmail.com',
      "phone": '444-340-211',
-     "role": "sales"},
+     "role": RoleEnum.sales},
     {"name": 'Dalton T',
      "email": 'dalton@hotmal.com',
      "phone": '407-000-211',
-     "role": "sales"},
+     "role":  RoleEnum.sales},
     {"name": 'Daisy X',
      "email": 'daisy@hotmal.com',
      "phone": '416-340-211',
-     "role": "sales"},
+     "role":  RoleEnum.sales},
     {"name": 'Support Rep 1',
      "email": 'support1@gmail.com',
      "phone": '416-222-333',
-     "role": "support"},
+     "role":  RoleEnum.support},
     {"name": 'Support Rep 2',
      "email": 'support2@gmail.com',
      "phone": '406-777-111',
-     "role": "support"},
+     "role": RoleEnum.support},
     {"name": 'Manager 1',
      "email": 'support2@gmail.com',
      "phone": '234-456-123',
-     "role": "manager"},
+     "role":  RoleEnum.manager},
 ]
 
 clients = [
@@ -45,14 +45,14 @@ clients = [
      "phone": '416-706-2001',
      'company_name': 'company XYZ',
      "created_at": datetime.datetime(1995, 2, 3)
-    },
+     },
     {
-     "support": 1,
-     "name": 'Stephany MacFarland',
-     "email": 'sfarland@farland.com',
-     "phone": '706-200-111',
-     'company_name': 'Farland Inc',
-     "created_at": datetime.datetime(2015, 7, 1)}
+        "support": 1,
+        "name": 'Stephany MacFarland',
+        "email": 'sfarland@farland.com',
+        "phone": '706-200-111',
+        'company_name': 'Farland Inc',
+        "created_at": datetime.datetime(2015, 7, 1)}
 ]
 
 events = [
@@ -88,19 +88,19 @@ contracts = [
      "event": 1,
      "created_at": datetime.datetime(2003, 9, 8),
      "cost": 1000.20,
-     "status": 'created'},
+     "status": StatusEnum.created},
     {"client": 2,
      "support": 2,
      "event": 2,
      "created_at": datetime.datetime(1995, 2, 3),
      "cost": 999.00,
-     "status": 'created'},
+     "status": StatusEnum.created},
     {"client": 3,
      "support": 3,
      "event": 3,
      "created_at": datetime.datetime(2015, 7, 1),
      "cost": 199.00,
-     "status": 'created'},
+     "status": StatusEnum.created},
 ]
 
 
@@ -112,6 +112,7 @@ def create_collaborators():
                                     role=collaborator["role"])
         session.add(collaborator)
         session.commit()
+        print(collaborator + "new record added")
 
 
 def create_clients():
@@ -125,6 +126,7 @@ def create_clients():
 
         session.add(client)
         session.commit()
+    print("new records added")
 
 
 def create_contracts():
@@ -136,6 +138,7 @@ def create_contracts():
 
         session.add(contract)
         session.commit()
+    print("new records added")
 
 
 def create_events():
@@ -149,3 +152,4 @@ def create_events():
                       notes=event["notes"])
         session.add(event)
         session.commit()
+        print(event + "new record added")

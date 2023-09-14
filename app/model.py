@@ -1,8 +1,9 @@
 import enum
-from sqlalchemy import Column, Integer, String, Date, Enum
+from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from .config import engine
 
+import datetime
 
 Base = declarative_base()
 
@@ -27,7 +28,6 @@ class Client(Base):
     email = Column(String(50))
     phone = Column(String(20))
     company_name = Column(String(50))
-    created_at = Column(Date)
 
 
 class Collaborator(Base):
@@ -51,7 +51,7 @@ class Contract(Base):
     # event_id = ForeignKey('event.id', onupdate="CASCADE", ondelete="CASCADE")
     client_id = Column(Integer)
     event_id = Column(Integer)
-    created_at = Column(Date, auto_now=True)
+    created_at = Column(Date, default=datetime.datetime.now)
     status = Column(Enum(StatusEnum, name="status"),
                     default="created")
 
@@ -68,7 +68,7 @@ class Event(Base):
     end_date = Column(Date)
     location = Column(String(50))
     attendees = Column(Integer)
-    notes = Column(String(50), nullable=True)
+    notes = Column(String(50), nullable=True, default="")
 
 
 # 4- migrate

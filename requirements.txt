@@ -3,3 +3,4 @@ greenlet==2.0.2
 psycopg2-binary==2.9.7
 SQLAlchemy==2.0.20
 typing_extensions==4.7.1
+faker_sqlalchemy==0.10.2208140

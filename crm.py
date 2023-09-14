@@ -45,6 +45,24 @@ def selections(option):
         print("Invalid option")
 
 
+def sub_menu():
+    print("======== MENU =========")
+    print("[1] - make another query")
+    print("[2] - quit")
+    print("=========================")
+
+
+@click.command()
+@click.option('--option', prompt='Your choice',
+              help='Select option')
+def select(option):
+    if int(option) == 1:
+        menu()
+        selections()
+    elif int(option) == 2:
+        exit()
+
+
 def get_all_contracts():
     contracts = session.query(Contract).all()
     for contract in contracts:
@@ -61,6 +79,8 @@ def get_all_contracts():
               "support: ", support.name, "\n",
               "event:", event.name, "\n", "status:",
               display_contract_status(contract.status))
+    sub_menu()
+    select()
     return contracts
 
 
@@ -71,7 +91,12 @@ def get_all_events():
               event.start_date, "end:", event.end_date, "location:",
               event.location, "attendees:", event.attendees,
               "notes:", event.notes)
+    sub_menu()
+    select()
     return events
+
+
+print("\n\n\n\n")
 
 
 def get_all_clients():
@@ -79,7 +104,9 @@ def get_all_clients():
     for client in clients:
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
-              client.company_name, "created at:", client.created_at)
+              client.company_name)
+    sub_menu()
+    select()
     return clients
 
 
@@ -99,6 +126,8 @@ def display_clients_events():
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
               client.company_name, "created at:", client.created_at)
+    sub_menu()
+    select()
 
 
 @click.command()
@@ -117,6 +146,8 @@ def create_event(name, start, end, location, attendees, notes):
                   notes=notes)
     session.add(event)
     session.commit()
+    sub_menu()
+    select()
 
 
 @click.command()
@@ -138,6 +169,8 @@ def edit_event(id, name, start, end, location, attendees, notes, status):
     event.notes = notes
     event.status = status
     session.commit()
+    sub_menu()
+    select()
 
 
 @click.command()
@@ -150,6 +183,8 @@ def create_contract(client_id, event_id, response):
     if response == "y":
         session.add(contract)
         session.commit()
+    sub_menu()
+    select()
 
 
 @click.command()
@@ -161,6 +196,8 @@ def edit_contract(id, client_id, event_id):
     contract.client_id = int(client_id)
     contract.event_id = int(event_id)
     session.commit()
+    sub_menu()
+    select()
 
 
 if __name__ == '__main__':
