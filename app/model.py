@@ -62,7 +62,8 @@ class Event(Base):
 
     # support_contact_id = ForeignKey('collaborator.id', onupdate="CASCADE",
     #                                 ondelete="CASCADE")
-    support_contact_id = Column(Integer)
+    client_id = Column(Integer)
+    support_contact_id = Column(Integer, nullable=True)
     name = Column(String(50))
     start_date = Column(Date)
     end_date = Column(Date)

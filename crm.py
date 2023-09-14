@@ -1,9 +1,26 @@
 import click
 import datetime
-
+from sqlalchemy import literal_column
 from app.model import Contract, Event, Client, Collaborator
 from app.config import session
-from utils import display_contract_status
+from utils import display_contract_status, display_role_status
+
+
+def get_current_user():
+    current_user = session.query(literal_column("current_user"))
+    for usr in current_user:
+        return usr[0]
+
+
+def get_role(current_user):
+    collaborators = session.query(Collaborator).all()
+    for collaborator in collaborators:
+        if collaborator.name == current_user:
+            return collaborator.role
+
+
+def get_permission(current_user):
+    pass
 
 
 def menu():
@@ -15,7 +32,14 @@ def menu():
     print("[4] - create new contract")
     print("[5] - edit contract")
     print("[6] - display all contracts")
-    print("[7] - display all clients")
+    print("=========================")
+    print("[7] - create new collaborator")
+    print("[8] - edit collaborator")
+    print("[9] - display all collaborators")
+    print("=========================")
+    print("[10] - create new client")
+    print("[11] - edit client")
+    print("[12] - display all clients")
 
 # CRUD
 
@@ -40,6 +64,16 @@ def selections(option):
     elif int(option) == 6:
         get_all_contracts()
     elif int(option) == 7:
+        create_collaborator()
+    elif int(option) == 8:
+        edit_collaborator()
+    elif int(option) == 9:
+        get_all_collaborators
+    elif int(option) == 10:
+        create_client()
+    elif int(option) == 11:
+        edit_client()
+    elif int(option) == 12:
         get_all_clients()
     else:
         print("Invalid option")
@@ -99,12 +133,26 @@ def get_all_events():
 print("\n\n\n\n")
 
 
+def get_all_collaborators():
+    collaborators = session.query(Collaborator).all()
+    for collaborator in collaborators:
+        print("id:", collaborator.id, ",", "name:", collaborator.name, "email:",
+              collaborator.email, "phone:", collaborator.phone, "role:",
+              display_role_status(collaborator.role))
+    sub_menu()
+    select()
+    return collaborators
+
+
 def get_all_clients():
     clients = session.query(Client).all()
     for client in clients:
+        support = session.query(Collaborator).filter(Collaborator.id
+                                                     == client.support_id).first()
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
-              client.company_name)
+              client.company_name, "support: ", support.name)
+
     sub_menu()
     select()
     return clients
@@ -138,6 +186,7 @@ def display_clients_events():
 @click.option('--attendees', prompt='number of attendees')
 @click.option('--notes', prompt='notes or description')
 def create_event(name, start, end, location, attendees, notes):
+
     start_date = datetime.datetime.strptime(start, '%Y-%m-%d')
     end_date = datetime.datetime.strptime(end, '%Y-%m-%d')
     event = Event(name=name, start_date=start_date,
@@ -145,6 +194,63 @@ def create_event(name, start, end, location, attendees, notes):
                   location=location, attendees=int(attendees),
                   notes=notes)
     session.add(event)
+    session.commit()
+    sub_menu()
+    select()
+
+
+@click.command()
+@click.option('--name', prompt='name')
+@click.option('--email', prompt='email')
+@click.option('--phone', prompt='phone')
+def create_collaborator(name, email, phone, role):
+    collaborator = Collaborator(name=name, email=email, phone=phone, role=role)
+    session.add(collaborator)
+    session.commit()
+    sub_menu()
+    select()
+
+
+@click.command()
+@click.option('--name', prompt='name')
+@click.option('--email', prompt='email')
+@click.option('--phone', prompt='phone')
+def edit_collaborator(id, name, email, phone, role):
+    collaborator = session.query(Collaborator).filter(
+        Collaborator.id == int(id)).first()
+    collaborator.name = name
+    collaborator.email = email
+    collaborator.phone = phone
+    collaborator.role = role
+    session.commit()
+    sub_menu()
+    select()
+
+
+@click.command()
+@click.option('--name', prompt='name')
+@click.option('--email', prompt='email')
+@click.option('--phone', prompt='phone')
+def create_client(name, email, phone, company_name):
+
+    client = Client(name=name, email=email, phone=phone,
+                    company_name=company_name)
+    session.add(client)
+    session.commit()
+    sub_menu()
+    select()
+
+
+@click.command()
+@click.option('--name', prompt='name')
+@click.option('--email', prompt='email')
+@click.option('--phone', prompt='phone')
+def edit_client(id, name, email, phone, role):
+    client = session.query(Client).filter(
+        Client.id == int(id)).first()
+    client.name = name
+    client.email = email
+    client.phone = phone
     session.commit()
     sub_menu()
     select()
