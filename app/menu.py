@@ -29,7 +29,17 @@ def menu():
 
 
 def restart():
+    print("\n")
     print("======== MENU =========")
     print("[1] - make another query")
     print("[2] - quit")
     print("=========================")
+    print("\n")
+
+
+def contract_filters():
+    print("\n")
+    print("======== CONTRACTS =========")
+    print("[1] - created")
+    print("[2] - signed")
+    print("[3] - paid")

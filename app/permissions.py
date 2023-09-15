@@ -1,5 +1,5 @@
-from .models import RoleEnum as UserRole
-from utils import get_current_user
+from .models import Client, RoleEnum as UserRole
+from app.config import session
 
 
 class UserPermissions:
@@ -18,25 +18,26 @@ class UserPermissions:
         return True if current_user == UserRole.manager else False
 
     # CRUD permissions on table contract
+    @staticmethod
     def can_create_contract(current_user: UserRole) -> bool:
         return True if current_user == UserRole.manager else False
 
     @staticmethod
+    def can_read_contract(current_user: UserRole) -> bool:
+        return True if current_user == UserRole.sales else False
+
+    @staticmethod
     def can_update_contract(current_user: UserRole) -> bool:
-        return True if current_user == UserRole.manager else False
+        return True if current_user in [UserRole.manager, UserRole.sales] else False
 
     # CRUD permissions on table client
     @staticmethod
     def can_create_client(current_user: UserRole) -> bool:
-        return True if current_user == UserRole.admin else False
+        return True if current_user == UserRole.sales else False
 
     @staticmethod
-    def can_update_user(current_user: UserRole) -> bool:
-        return True if current_user == UserRole.admin else False
-
-    @staticmethod
-    def can_delete_user(current_user: UserRole) -> bool:
-        return True if current_user == UserRole.admin else False
+    def can_update_client(current_user: UserRole) -> bool:
+        return True if current_user == UserRole.sales else False
 
     # CRUD permissions on table event
 
