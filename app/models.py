@@ -8,16 +8,16 @@ import datetime
 Base = declarative_base()
 
 
-class RoleEnum(enum.Enum):
-    sales = 1
-    support = 2
-    manager = 3
+class RoleEnum(enum.StrEnum):
+    sales = "sales"
+    support = "support"
+    manager = "manager"
 
 
-class StatusEnum(enum.Enum):
-    created = 1
-    signed = 2
-    paid = 3
+class StatusEnum(enum.StrEnum):
+    created = "created"
+    signed = "signed"
+    paid = "paid"
 
 
 class Client(Base):

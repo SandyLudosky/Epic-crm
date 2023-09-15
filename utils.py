@@ -1,5 +1,5 @@
 from app.config import session
-from app.model import Collaborator, StatusEnum, RoleEnum
+from app.models import Collaborator, StatusEnum, RoleEnum
 from sqlalchemy import literal_column
 
 
@@ -25,10 +25,29 @@ def display_role_status(value):
         return "Invalid role"
 
 
-def get_current_user():
+def get_role(role):
+    if int(role) == 1:
+        return RoleEnum.sales
+    elif int(role) == 2:
+        return RoleEnum.support
+    elif int(role) == 3:
+        return RoleEnum.manager
+    else:
+        print("Invalid role")
+
+
+def get_current_username():
     current_user = session.query(literal_column("current_user"))
     for usr in current_user:
         return usr[0]
+
+
+def get_current_user():
+    current_user = get_current_username()
+    collaborators = session.query(Collaborator).all()
+    for collaborator in collaborators:
+        if collaborator.name == current_user:
+            return collaborator
 
 
 def get_role(current_user):
@@ -36,3 +55,12 @@ def get_role(current_user):
     for collaborator in collaborators:
         if collaborator.name == current_user:
             return collaborator.role
+
+# MENU
+
+
+def restart():
+    print("======== MENU =========")
+    print("[1] - make another query")
+    print("[2] - quit")
+    print("=========================")

@@ -1,4 +1,4 @@
-from app.model import Contract, Event, Client, Collaborator, StatusEnum, RoleEnum
+from app.models import Contract, Event, Client, Collaborator, StatusEnum, RoleEnum
 from sqlalchemy import ForeignKey
 from app.config import session
 
@@ -9,50 +9,48 @@ collaborators = [
      "email": 'sandra@gmail.com',
      "phone": '444-340-211',
      "role": RoleEnum.sales},
-    {"name": 'Dalton T',
-     "email": 'dalton@hotmal.com',
+    {"name": 'mike',
+     "email": 'mike@hotmal.com',
      "phone": '407-000-211',
      "role":  RoleEnum.sales},
     {"name": 'Daisy X',
      "email": 'daisy@hotmal.com',
      "phone": '416-340-211',
      "role":  RoleEnum.sales},
-    {"name": 'Support Rep 1',
-     "email": 'support1@gmail.com',
+    {"name": 'claire',
+     "email": 'claire@gmail.com',
      "phone": '416-222-333',
      "role":  RoleEnum.support},
     {"name": 'Support Rep 2',
      "email": 'support2@gmail.com',
      "phone": '406-777-111',
      "role": RoleEnum.support},
-    {"name": 'Manager 1',
-     "email": 'support2@gmail.com',
+    {"name": 'adele',
+     "email": 'adele@gmail.com',
      "phone": '234-456-123',
      "role":  RoleEnum.manager},
 ]
 
 clients = [
-    {"support": 1,
+    {"support": 3,
      "name": 'Melany B',
      "email": "melb@gmail.com",
      "phone": '444-340-211',
-     'company_name': 'company ABC',
-     "created_at": datetime.datetime(2003, 11, 8)
+     'company_name': 'company ABC'
      },
-    {"support": 2,
+    {"support": 1,
      "name": 'Melany C',
      "email": 'melc@gmail.com',
      "phone": '416-706-2001',
-     'company_name': 'company XYZ',
-     "created_at": datetime.datetime(1995, 2, 3)
+     'company_name': 'company XYZ'
      },
     {
-        "support": 1,
+        "support": None,
         "name": 'Stephany MacFarland',
         "email": 'sfarland@farland.com',
         "phone": '706-200-111',
-        'company_name': 'Farland Inc',
-        "created_at": datetime.datetime(2015, 7, 1)}
+        'company_name': 'Farland Inc'
+    }
 ]
 
 events = [
@@ -79,7 +77,7 @@ events = [
      "end_date": datetime.datetime(2015, 7, 3),
      "location": 'Vancouver',
      "attendees": 300,
-     "notes": "This is a note"},
+     "notes": None},
 ]
 
 contracts = [

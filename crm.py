@@ -1,30 +1,24 @@
 import click
 import datetime
-
-from app.model import Contract, Event, Client, Collaborator
 from app.config import session
-from utils import display_contract_status, display_role_status
+
+from app.models import Contract, Event, Client, Collaborator, RoleEnum
+from app.menu import menu, roles_options, restart
+from app.permissions import UserPermissions
+
+from utils import display_contract_status, display_role_status, get_current_user, get_role
 
 
-def menu():
-    print("======== MENU =========")
-    print("[1] - create new event")
-    print("[2] - edit event")
-    print("[3] - display all events")
-    print("=========================")
-    print("[4] - create new contract")
-    print("[5] - edit contract")
-    print("[6] - display all contracts")
-    print("=========================")
-    print("[7] - create new collaborator")
-    print("[8] - edit collaborator")
-    print("[9] - display all collaborators")
-    print("=========================")
-    print("[10] - create new client")
-    print("[11] - edit client")
-    print("[12] - display all clients")
-
-# CRUD
+# MENU
+@click.command()
+@click.option('--option', prompt='Your choice',
+              help='Select option')
+def restart_selections(option):
+    if int(option) == 1:
+        menu()
+        selections()
+    elif int(option) == 2:
+        exit()
 
 
 @click.command()
@@ -47,26 +41,24 @@ def selections(option):
     elif int(option) == 6:
         get_all_contracts()
     elif int(option) == 7:
+        roles_options()
         create_collaborator()
     elif int(option) == 8:
         edit_collaborator()
     elif int(option) == 9:
-        get_all_collaborators
+        get_all_collaborators()
     elif int(option) == 10:
-        create_client()
+        delete_collaborator()
     elif int(option) == 11:
-        edit_client()
+        create_client()
     elif int(option) == 12:
+        edit_client()
+    elif int(option) == 13:
         get_all_clients()
     else:
         print("Invalid option")
-
-
-def restart():
-    print("======== MENU =========")
-    print("[1] - make another query")
-    print("[2] - quit")
-    print("=========================")
+    restart()
+    restart_selections()
 
 
 @click.command()
@@ -93,25 +85,32 @@ def get_all_contracts():
         support = session.query(Collaborator).filter(Collaborator.id
                                                      == event.support_contact_id).first()
 
-        print("id:", contract.id, "\n", "Created on:", contract.created_at,
+        print("id:", contract.id, "\n",
               "\n", "client:", client.name, "\n",
               "support: ", support.name, "\n",
               "event:", event.name, "\n", "status:",
               display_contract_status(contract.status))
-    restart()
-    restart_selections()
     return contracts
 
 
 def get_all_events():
+    current_user = get_current_user()
     events = session.query(Event).all()
-    for event in events:
-        print("id:", event.id, ",", "name:", event.name, "start:",
-              event.start_date, "end:", event.end_date, "location:",
-              event.location, "attendees:", event.attendees,
-              "notes:", event.notes)
-    restart()
-    restart_selections()
+    events_no_support = session.query(Event).filter(
+        Event.support_contact_id is None).all()
+
+    if UserPermissions.can_display_events_without_support(current_user):
+        for event in events_no_support:
+            print("id:", event.id, ",", "name:", event.name, "start:",
+                  event.start_date, "end:", event.end_date, "location:",
+                  event.location, "attendees:", event.attendees,
+                  "notes:", event.notes)
+    else:
+        for event in events:
+            print("id:", event.id, ",", "name:", event.name, "start:",
+                  event.start_date, "end:", event.end_date, "location:",
+                  event.location, "attendees:", event.attendees,
+                  "notes:", event.notes)
     return events
 
 
@@ -121,8 +120,6 @@ def get_all_collaborators():
         print("id:", collaborator.id, ",", "name:", collaborator.name, "email:",
               collaborator.email, "phone:", collaborator.phone, "role:",
               display_role_status(collaborator.role))
-    restart()
-    restart_selections()
     return collaborators
 
 
@@ -135,8 +132,6 @@ def get_all_clients():
               client.email, "phone:", client.phone, "company name:",
               client.company_name, "support: ", support.name)
 
-    restart()
-    restart_selections()
     return clients
 
 
@@ -155,11 +150,47 @@ def display_clients_events():
     for client in clients:
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
-              client.company_name, "created at:", client.created_at)
-    restart()
-    restart_selections()
+              client.company_name)
+
 
 # CREATE
+
+
+@click.command()
+@click.option('--name', prompt='name')
+@click.option('--email', prompt='email')
+@click.option('--phone', prompt='phone')
+@click.option('--role', prompt='role')
+def create_collaborator(name, email, phone, role):
+    role_name = get_role(role)
+    current_user = get_current_user()
+
+    if UserPermissions.can_create_collaborator(current_user) or UserPermissions.can_update_collaborator(current_user) or UserPermissions.can_delete_collaborator(current_user):
+
+        collaborator = Collaborator(
+            name=name, email=email, phone=phone, role=role_name)
+        session.add(collaborator)
+        session.commit()
+        print("✅ collaborator successfully created")
+    else:
+        print("🛑 You don't have the permission to create a collaborator")
+
+
+@click.command()
+@click.option('--event_id', prompt='select event')
+@click.option('--client_id', prompt='select client')
+@click.option('--response', prompt='create contract ? [y/n]]')
+def create_contract(client_id, event_id, response):
+    current_user = get_current_user()
+    if UserPermissions.can_create_contract(current_user) or UserPermissions.can_update_contract(current_user):
+        contract = Contract(client_id=int(client_id), event_id=int(event_id),
+                            created_at=datetime.datetime.now())
+        if response == "y":
+            session.add(contract)
+            session.commit()
+            print("✅ collaborator successfully created")
+    else:
+        print("🛑 You don't have the permission to create a collaborator")
 
 
 @click.command()
@@ -179,8 +210,6 @@ def create_event(name, start, end, location, attendees, notes):
                   notes=notes)
     session.add(event)
     session.commit()
-    restart()
-    restart_selections()
 
 
 @click.command()
@@ -193,34 +222,7 @@ def create_client(name, email, phone, company_name):
                     company_name=company_name)
     session.add(client)
     session.commit()
-    restart()
-    restart_selections()
 
-
-@click.command()
-@click.option('--name', prompt='name')
-@click.option('--email', prompt='email')
-@click.option('--phone', prompt='phone')
-def create_collaborator(name, email, phone, role):
-    collaborator = Collaborator(name=name, email=email, phone=phone, role=role)
-    session.add(collaborator)
-    session.commit()
-    restart()
-    restart_selections()
-
-
-@click.command()
-@click.option('--event_id', prompt='select event')
-@click.option('--client_id', prompt='select client')
-@click.option('--response', prompt='create contract ? [y/n]]')
-def create_contract(client_id, event_id, response):
-    contract = Contract(client_id=int(client_id), event_id=int(event_id),
-                        created_at=datetime.datetime.now())
-    if response == "y":
-        session.add(contract)
-        session.commit()
-    restart()
-    restart_selections()
 
 # UPDATE
 
@@ -237,8 +239,6 @@ def edit_collaborator(id, name, email, phone, role):
     collaborator.phone = phone
     collaborator.role = role
     session.commit()
-    restart()
-    restart_selections()
 
 
 @click.command()
@@ -252,8 +252,14 @@ def edit_client(id, name, email, phone, role):
     client.email = email
     client.phone = phone
     session.commit()
-    restart()
-    restart_selections()
+
+
+def edit_event():
+    current_user = get_current_user
+    if UserPermissions.can_display_events_without_support(current_user):
+        edit_event_with_no_support()
+    else:
+        edit_any_event()
 
 
 @click.command()
@@ -265,7 +271,7 @@ def edit_client(id, name, email, phone, role):
 @click.option('--attendees', prompt='number of attendees')
 @click.option('--notes', prompt='notes or description')
 @click.option('--status', prompt='notes or description')
-def edit_event(id, name, start, end, location, attendees, notes, status):
+def edit_any_event(id, name, start, end, location, attendees, notes, status):
     event = session.query(Event).filter(Event.id == int(id)).first()
     event.name = name
     event.start = datetime.datetime.strptime(start, '%Y-%m-%d')
@@ -275,8 +281,26 @@ def edit_event(id, name, start, end, location, attendees, notes, status):
     event.notes = notes
     event.status = status
     session.commit()
-    restart()
-    restart_selections()
+
+
+@click.command()
+@click.option('--id', prompt='select event to edit')
+@click.option('--support', prompt='support')
+def edit_event_with_no_support():
+    event = session.query(Event).filter(Event.id == int(id)).first()
+    support_contact_id = session.query(
+        Collaborator).filter(Collaborator.id == int(id)).first()
+    event.support_contact_id = support_contact_id
+    session.commit()
+
+
+@click.command()
+@click.option('--id', prompt='select event to edit')
+@click.option('--support', prompt='support contact')
+def edit_event_support(id, support_contact_id):
+    event = session.query(Event).filter(Event.id == int(id)).first()
+    event.support_contact_id = support_contact_id
+    session.commit()
 
 
 @click.command()
@@ -288,8 +312,19 @@ def edit_contract(id, client_id, event_id):
     contract.client_id = int(client_id)
     contract.event_id = int(event_id)
     session.commit()
-    restart()
-    restart_selections()
+
+# DELETE
+
+
+@click.command()
+@click.option('--name', prompt='name')
+@click.option('--email', prompt='email')
+@click.option('--phone', prompt='phone')
+def delete_collaborator(id):
+    session.query(Collaborator).delete(
+        Collaborator.id == int(id)).first()
+    print("user successfully deleted")
+    session.commit()
 
 
 if __name__ == '__main__':
