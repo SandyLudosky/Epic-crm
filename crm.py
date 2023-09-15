@@ -1,26 +1,9 @@
 import click
 import datetime
-from sqlalchemy import literal_column
+
 from app.model import Contract, Event, Client, Collaborator
 from app.config import session
 from utils import display_contract_status, display_role_status
-
-
-def get_current_user():
-    current_user = session.query(literal_column("current_user"))
-    for usr in current_user:
-        return usr[0]
-
-
-def get_role(current_user):
-    collaborators = session.query(Collaborator).all()
-    for collaborator in collaborators:
-        if collaborator.name == current_user:
-            return collaborator.role
-
-
-def get_permission(current_user):
-    pass
 
 
 def menu():
@@ -79,7 +62,7 @@ def selections(option):
         print("Invalid option")
 
 
-def sub_menu():
+def restart():
     print("======== MENU =========")
     print("[1] - make another query")
     print("[2] - quit")
@@ -89,12 +72,14 @@ def sub_menu():
 @click.command()
 @click.option('--option', prompt='Your choice',
               help='Select option')
-def select(option):
+def restart_selections(option):
     if int(option) == 1:
         menu()
         selections()
     elif int(option) == 2:
         exit()
+
+# READ
 
 
 def get_all_contracts():
@@ -113,8 +98,8 @@ def get_all_contracts():
               "support: ", support.name, "\n",
               "event:", event.name, "\n", "status:",
               display_contract_status(contract.status))
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
     return contracts
 
 
@@ -125,12 +110,9 @@ def get_all_events():
               event.start_date, "end:", event.end_date, "location:",
               event.location, "attendees:", event.attendees,
               "notes:", event.notes)
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
     return events
-
-
-print("\n\n\n\n")
 
 
 def get_all_collaborators():
@@ -139,8 +121,8 @@ def get_all_collaborators():
         print("id:", collaborator.id, ",", "name:", collaborator.name, "email:",
               collaborator.email, "phone:", collaborator.phone, "role:",
               display_role_status(collaborator.role))
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
     return collaborators
 
 
@@ -153,8 +135,8 @@ def get_all_clients():
               client.email, "phone:", client.phone, "company name:",
               client.company_name, "support: ", support.name)
 
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
     return clients
 
 
@@ -174,8 +156,10 @@ def display_clients_events():
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
               client.company_name, "created at:", client.created_at)
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
+
+# CREATE
 
 
 @click.command()
@@ -195,8 +179,22 @@ def create_event(name, start, end, location, attendees, notes):
                   notes=notes)
     session.add(event)
     session.commit()
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
+
+
+@click.command()
+@click.option('--name', prompt='name')
+@click.option('--email', prompt='email')
+@click.option('--phone', prompt='phone')
+def create_client(name, email, phone, company_name):
+
+    client = Client(name=name, email=email, phone=phone,
+                    company_name=company_name)
+    session.add(client)
+    session.commit()
+    restart()
+    restart_selections()
 
 
 @click.command()
@@ -207,8 +205,24 @@ def create_collaborator(name, email, phone, role):
     collaborator = Collaborator(name=name, email=email, phone=phone, role=role)
     session.add(collaborator)
     session.commit()
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
+
+
+@click.command()
+@click.option('--event_id', prompt='select event')
+@click.option('--client_id', prompt='select client')
+@click.option('--response', prompt='create contract ? [y/n]]')
+def create_contract(client_id, event_id, response):
+    contract = Contract(client_id=int(client_id), event_id=int(event_id),
+                        created_at=datetime.datetime.now())
+    if response == "y":
+        session.add(contract)
+        session.commit()
+    restart()
+    restart_selections()
+
+# UPDATE
 
 
 @click.command()
@@ -223,22 +237,8 @@ def edit_collaborator(id, name, email, phone, role):
     collaborator.phone = phone
     collaborator.role = role
     session.commit()
-    sub_menu()
-    select()
-
-
-@click.command()
-@click.option('--name', prompt='name')
-@click.option('--email', prompt='email')
-@click.option('--phone', prompt='phone')
-def create_client(name, email, phone, company_name):
-
-    client = Client(name=name, email=email, phone=phone,
-                    company_name=company_name)
-    session.add(client)
-    session.commit()
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
 
 
 @click.command()
@@ -252,8 +252,8 @@ def edit_client(id, name, email, phone, role):
     client.email = email
     client.phone = phone
     session.commit()
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
 
 
 @click.command()
@@ -275,22 +275,8 @@ def edit_event(id, name, start, end, location, attendees, notes, status):
     event.notes = notes
     event.status = status
     session.commit()
-    sub_menu()
-    select()
-
-
-@click.command()
-@click.option('--event_id', prompt='select event')
-@click.option('--client_id', prompt='select client')
-@click.option('--response', prompt='create contract ? [y/n]]')
-def create_contract(client_id, event_id, response):
-    contract = Contract(client_id=int(client_id), event_id=int(event_id),
-                        created_at=datetime.datetime.now())
-    if response == "y":
-        session.add(contract)
-        session.commit()
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
 
 
 @click.command()
@@ -302,8 +288,8 @@ def edit_contract(id, client_id, event_id):
     contract.client_id = int(client_id)
     contract.event_id = int(event_id)
     session.commit()
-    sub_menu()
-    select()
+    restart()
+    restart_selections()
 
 
 if __name__ == '__main__':
