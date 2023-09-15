@@ -21,11 +21,9 @@ sentry_sdk.init(
 
 
 # engine POSTGRESQL
-# engine = create_engine(
-#     "postgresql+psycopg2://postgres:test123@localhost:5432/sandyludosky", echo=True)
-
 engine = create_engine(
-    "postgresql+psycopg2://mike:test123@localhost:5432/sandyludosky", echo=True)
+    "postgresql+psycopg2://postgres:test123@localhost:5432/sandyludosky", echo=True)
+
 
 # 2- session
 Session = sessionmaker(bind=engine)

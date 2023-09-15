@@ -3,7 +3,7 @@ import datetime
 from app.config import session
 
 
-from app.models import Contract, Event, Client, Collaborator
+from app.models import Contract, Event, Client, Collaborator, RoleEnum
 from app.menu import menu, roles_options, restart, contract_filters
 from app.permissions import UserPermissions
 
@@ -213,19 +213,23 @@ def display(contracts):
 def create_collaborator(name, email, phone, role):
     try:
         role_name = get_role(role)
+        print(role_name)
         current_user = get_current_user()
+        print(current_user)
 
-        if UserPermissions.can_create_collaborator(current_user) or UserPermissions.can_update_collaborator(current_user) or UserPermissions.can_delete_collaborator(current_user):
+        # if UserPermissions.can_create_collaborator(current_user) or UserPermissions.can_update_collaborator(current_user) or UserPermissions.can_delete_collaborator(current_user):
 
-            collaborator = Collaborator(
-                name=name, email=email, phone=phone, role=role_name)
-            session.add(collaborator)
-            session.commit()
-            print("✅ collaborator successfully created")
-        else:
-            print("🛑 You don't have the permission to create a collaborator")
+        collaborator = Collaborator(
+            name=name, email=email, phone=phone, role=role)
+        session.add(collaborator)
+        session.commit()
+        print("✅ collaborator successfully created")
+        # else:
+        #     print("🛑 You don't have the permission to create a collaborator")
     except Exception as e:
         # Alternatively the argument can be omitted
+        print("ERROR")
+        print(str(e))
         sentry_sdk.capture_exception(e)
         sentry_sdk.capture_message('Something went wrong')
 

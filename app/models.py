@@ -3,6 +3,8 @@ from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from .config import engine
 
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+
 import datetime
 
 Base = declarative_base()
@@ -36,7 +38,9 @@ class Collaborator(Base):
     name = Column(String(50))
     email = Column(String(50))
     phone = Column(String(20))
-    role = Column(Enum(RoleEnum, name="role"))
+    # role = Column(PgEnum(RoleEnum, name="role", create_type=False),
+                  nullable=False, default="sales")
+    role = Column(Enum(RoleEnum, name="role"), default="sales")
 
 # Roles:
 # sales representative = peut créer des events, changer les contrats de leurs clients
