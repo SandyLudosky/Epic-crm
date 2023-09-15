@@ -18,5 +18,6 @@ if __name__ == '__main__':
         main()
     except Exception as e:
         # Alternatively the argument can be omitted
+        print(e)
         sentry_sdk.capture_exception(e)
         sentry_sdk.capture_message('Something went wrong')

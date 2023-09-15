@@ -8,27 +8,27 @@ collaborators = [
     {"name": 'Sandra Queen',
      "email": 'sandra@gmail.com',
      "phone": '444-340-211',
-     "role": RoleEnum.sales},
+     "role": "sales"},
     {"name": 'mike',
      "email": 'mike@hotmal.com',
      "phone": '407-000-211',
-     "role":  RoleEnum.sales},
+     "role":  "sales"},
     {"name": 'Daisy X',
      "email": 'daisy@hotmal.com',
      "phone": '416-340-211',
-     "role":  RoleEnum.sales},
+     "role":  "sales"},
     {"name": 'claire',
      "email": 'claire@gmail.com',
      "phone": '416-222-333',
-     "role":  RoleEnum.support},
+     "role":  "support"},
     {"name": 'Support Rep 2',
      "email": 'support2@gmail.com',
      "phone": '406-777-111',
-     "role": RoleEnum.support},
+     "role": "support"},
     {"name": 'adele',
      "email": 'adele@gmail.com',
      "phone": '234-456-123',
-     "role":  RoleEnum.manager},
+     "role": "manager"},
 ]
 
 clients = [
@@ -86,19 +86,19 @@ contracts = [
      "event": 1,
      "created_at": datetime.datetime(2003, 9, 8),
      "cost": 1000.20,
-     "status": StatusEnum.created},
+     "status": "created"},
     {"client": 2,
      "support": 2,
      "event": 2,
      "created_at": datetime.datetime(1995, 2, 3),
      "cost": 999.00,
-     "status": StatusEnum.created},
+     "status": "created"},
     {"client": 3,
      "support": 3,
      "event": 3,
      "created_at": datetime.datetime(2015, 7, 1),
      "cost": 199.00,
-     "status": StatusEnum.created},
+     "status": "created"},
 ]
 
 
@@ -110,7 +110,6 @@ def create_collaborators():
                                     role=collaborator["role"])
         session.add(collaborator)
         session.commit()
-        print(collaborator + "new record added")
 
 
 def create_clients():
@@ -119,12 +118,10 @@ def create_clients():
                         name=client["name"],
                         email=client["email"],
                         phone=client["phone"],
-                        company_name=client["company_name"],
-                        created_at=client["created_at"])
+                        company_name=client["company_name"])
 
         session.add(client)
         session.commit()
-    print("new records added")
 
 
 def create_contracts():
@@ -136,7 +133,6 @@ def create_contracts():
 
         session.add(contract)
         session.commit()
-    print("new records added")
 
 
 def create_events():
@@ -150,4 +146,4 @@ def create_events():
                       notes=event["notes"])
         session.add(event)
         session.commit()
-        print(event + "new record added")
+        print(event.name + "new record added")

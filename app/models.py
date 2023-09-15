@@ -38,9 +38,8 @@ class Collaborator(Base):
     name = Column(String(50))
     email = Column(String(50))
     phone = Column(String(20))
-    # role = Column(PgEnum(RoleEnum, name="role", create_type=False),
-                  nullable=False, default="sales")
-    role = Column(Enum(RoleEnum, name="role"), default="sales")
+    role = Column(String(20))
+    # role = Column(Enum(RoleEnum, name="role"), default="sales")
 
 # Roles:
 # sales representative = peut créer des events, changer les contrats de leurs clients
@@ -56,8 +55,9 @@ class Contract(Base):
     client_id = Column(Integer)
     event_id = Column(Integer)
     created_at = Column(Date, default=datetime.datetime.now)
-    status = Column(Enum(StatusEnum, name="status"),
-                    default="created")
+    status = Column(String(20))
+    # status = Column(Enum(StatusEnum, name="status"),
+    #                 default="created")
 
 
 class Event(Base):

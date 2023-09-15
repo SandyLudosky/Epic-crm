@@ -212,8 +212,6 @@ def display(contracts):
 @click.option('--role', prompt='role')
 def create_collaborator(name, email, phone, role):
     try:
-        role_name = get_role(role)
-        print(role_name)
         current_user = get_current_user()
         print(current_user)
 
