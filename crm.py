@@ -1,3 +1,4 @@
+import os
 import click
 import datetime
 from app.config import session
@@ -11,7 +12,10 @@ from utils import display_contract_status, display_role_status, get_current_user
 import sentry_sdk
 
 # MENU
+USER = os.getenv('USER')
 
+def get_current_user():
+    return session.query(Collaborator).filter(Collaborator.name == USER).first()
 
 @click.command()
 @click.option('--option', prompt='Your choice',
@@ -73,6 +77,10 @@ def restart_selections(option):
         selections()
     elif int(option) == 2:
         exit()
+
+def get_current_user():
+    return session.query(Collaborator).filter(Collaborator.name == USER).first()
+
 
 # READ
 
@@ -212,18 +220,15 @@ def display(contracts):
 @click.option('--role', prompt='role')
 def create_collaborator(name, email, phone, role):
     try:
-        current_user = get_current_user()
-        print(current_user)
+        if UserPermissions.can_create_collaborator():
 
-        # if UserPermissions.can_create_collaborator(current_user) or UserPermissions.can_update_collaborator(current_user) or UserPermissions.can_delete_collaborator(current_user):
-
-        collaborator = Collaborator(
-            name=name, email=email, phone=phone, role=role)
-        session.add(collaborator)
-        session.commit()
-        print("✅ collaborator successfully created")
-        # else:
-        #     print("🛑 You don't have the permission to create a collaborator")
+            collaborator = Collaborator(
+                name=name, email=email, phone=phone, role=role)
+            session.add(collaborator)
+            session.commit()
+            print("✅ collaborator successfully created")
+        else:
+            print("🛑 You don't have the permission to create a collaborator")
     except Exception as e:
         # Alternatively the argument can be omitted
         print("ERROR")
@@ -237,8 +242,7 @@ def create_collaborator(name, email, phone, role):
 @click.option('--client_id', prompt='select client')
 @click.option('--response', prompt='create contract ? [y/n]]')
 def create_contract(client_id, event_id, response):
-    current_user = get_current_user()
-    if UserPermissions.can_create_contract(current_user) or UserPermissions.can_update_contract(current_user):
+    if UserPermissions.can_create_contract():
         contract = Contract(client_id=int(client_id), event_id=int(event_id),
                             created_at=datetime.datetime.now())
         if response == "y":
@@ -275,12 +279,12 @@ def create_event(name, start, end, location, attendees, notes):
 @click.option('--company_name', prompt='company')
 def create_client(name, email, phone, company_name):
     current_user = get_current_user()
-    if UserPermissions.can_create_client(current_user):
+    if UserPermissions.can_create_client():
         client = Client(name=name, email=email, phone=phone,
                         company_name=company_name, support_id=current_user.id)
         session.add(client)
         session.commit()
-        print("✅ collaborator successfully created")
+        print("✅ client successfully created")
     else:
         print("🛑 You don't have the permission to create a client")
 
@@ -293,18 +297,23 @@ def create_client(name, email, phone, company_name):
 @click.option('--email', prompt='email')
 @click.option('--phone', prompt='phone')
 def edit_collaborator(id, name, email, phone, role):
-    collaborator = session.query(Collaborator).filter(
-        Collaborator.id == int(id)).first()
-    collaborator.name = name
-    collaborator.email = email
-    collaborator.phone = phone
-    collaborator.role = role
-    session.commit()
+    if UserPermissions.can_update_collaborator():
+        collaborator = session.query(Collaborator).filter(
+            Collaborator.id == int(id)).first()
+        collaborator.name = name
+        collaborator.email = email
+        collaborator.phone = phone
+        collaborator.role = role
+        session.commit()
+        print("✅ collaborator successfully edited")
+    else:
+        print("🛑 You don't have the permission to edit a collaborator")
 
 
 def edit_client():
     current_user = get_current_user()
-    if UserPermissions.can_update_client(current_user):
+    if UserPermissions.can_update_client():
+
         clients = session.query(Client).filter(
             Client.support_id == current_user.id).first()
         edit_one_client()
@@ -312,6 +321,7 @@ def edit_client():
             print("id:", client.id, ",", "name:", client.name, "email:",
                   client.email, "phone:", client.phone, "company name:",
                   client.company_name)
+        print("✅ client successfully edited")
     else:
         print("🛑 You don't have the permission to create a client")
 
@@ -322,13 +332,17 @@ def edit_client():
 @click.option('--phone', prompt='phone')
 @click.option('--id', prompt='phone')
 def edit_one_client(id, name, email, phone):
-    client = session.query(Client).filter(
-        Client.id == int(id)).first()
+    if UserPermissions.can_update_collaborator():
+        client = session.query(Client).filter(
+            Client.id == int(id)).first()
 
-    client.name = name
-    client.email = email
-    client.phone = phone
-    session.commit()
+        client.name = name
+        client.email = email
+        client.phone = phone
+        session.commit()
+        print("✅ collaborator successfully edited")
+    else:
+        print("🛑 You don't have the permission to create a client")
 
 
 def edit_event():
@@ -386,7 +400,7 @@ def edit_contract():
         Client.support_id == current_user.id).first()
     contracts = session.query(Contract).filter(
         Contract.client_id == client.id).all()
-    if UserPermissions.can_update_client(current_user):
+    if UserPermissions.can_update_contract():
         for contract in contracts:
 
             event = session.query(Event).filter(Event.id ==
@@ -401,6 +415,7 @@ def edit_contract():
                   "event:", event.name, "\n", "status:",
                   display_contract_status(contract.status))
         edit_contract_my_clients()
+        print("✅ collaborator successfully edited")
     else:
         print("🛑 You don't have the permission to create a client")
 

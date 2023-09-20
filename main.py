@@ -59,7 +59,7 @@ def app():
 
 if __name__ == '__main__':
     try:
-        main()
+        app()
     except Exception as e:
         # Alternatively the argument can be omitted
         print(e)

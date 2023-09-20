@@ -5,7 +5,7 @@ from app.config import session
 import datetime
 
 collaborators = [
-    {"name": 'Sandra Queen',
+    {"name": 'sandra',
      "email": 'sandra@gmail.com',
      "phone": '444-340-211',
      "role": "sales"},
