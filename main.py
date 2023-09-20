@@ -6,8 +6,8 @@ import hashlib
 import base64
 
 
-from app.models import Contract, Event, Client, Collaborator
-from crud import create_collaborators, create_clients, create_events, create_contracts
+from app.models import Contract, Event, Client, User
+from crud import  create_clients, create_events, create_contracts, create_users
 from app.config import session
 
 import sentry_sdk
@@ -51,7 +51,7 @@ def main():
 
 
 def app():
-    create_collaborators()
+    create_users()
     create_clients()
     create_events()
     create_contracts()

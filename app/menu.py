@@ -5,7 +5,7 @@ def roles_options():
     print("[1] - sales representative")
     print("[2] - customer support")
     print("[3] - account manager")
-    print("===CREATE NEW COLLABORATOR===")
+    print("===CREATE NEW USER===")
 
 
 def menu():
@@ -18,10 +18,10 @@ def menu():
     print("[5] - edit contract")
     print("[6] - display all contracts")
     print("=========================")
-    print("[7] - create new collaborator")
-    print("[8] - edit collaborator")
-    print("[9] - display all collaborators")
-    print("[10] - delete collaborator")
+    print("[7] - create new user")
+    print("[8] - edit user")
+    print("[9] - display all user")
+    print("[10] - delete user")
     print("=========================")
     print("[11] - create new client")
     print("[12] - edit client")

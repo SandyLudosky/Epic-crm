@@ -4,18 +4,18 @@ import datetime
 from app.config import session
 
 
-from app.models import Contract, Event, Client, Collaborator, RoleEnum
+from app.models import Contract, Event, Client, User, ROLE
 from app.menu import menu, roles_options, restart, contract_filters
 from app.permissions import UserPermissions
 
-from utils import display_contract_status, display_role_status, get_current_user, get_role
+from utils import display_contract_status, display_role
 import sentry_sdk
 
 # MENU
 USER = os.getenv('USER')
 
 def get_current_user():
-    return session.query(Collaborator).filter(Collaborator.name == USER).first()
+    return session.query(User).filter(User.name == USER).first()
 
 @click.command()
 @click.option('--option', prompt='Your choice',
@@ -49,13 +49,13 @@ def selections(option):
         get_all_contracts()
     elif int(option) == 7:
         roles_options()
-        create_collaborator()
+        create_user()
     elif int(option) == 8:
-        edit_collaborator()
+        edit_user()
     elif int(option) == 9:
-        get_all_collaborators()
+        get_all_users()
     elif int(option) == 10:
-        delete_collaborator()
+        delete_user()
     elif int(option) == 11:
         create_client()
     elif int(option) == 12:
@@ -78,16 +78,15 @@ def restart_selections(option):
     elif int(option) == 2:
         exit()
 
-def get_current_user():
-    return session.query(Collaborator).filter(Collaborator.name == USER).first()
 
+def get_current_user():
+    return session.query(User).filter(User.name == USER).first()
 
 # READ
 
 
 def get_all_contracts():
-    current_user = get_current_user()
-    if UserPermissions.can_read_contract(current_user):
+    if UserPermissions.can_read_contract():
         contracts = session.query(Contract).all()
         for contract in contracts:
             client = session.query(Client).filter(Client.id ==
@@ -95,7 +94,7 @@ def get_all_contracts():
             event = session.query(Event).filter(Event.id ==
                                                 contract.event_id).first()
 
-            support = session.query(Collaborator).filter(Collaborator.id
+            support = session.query(User).filter(User.id
                                                          == event.support_contact_id).first()
 
             print("id:", contract.id, "\n",
@@ -131,19 +130,19 @@ def get_all_events():
     return events
 
 
-def get_all_collaborators():
-    collaborators = session.query(Collaborator).all()
-    for collaborator in collaborators:
-        print("id:", collaborator.id, ",", "name:", collaborator.name, "email:",
-              collaborator.email, "phone:", collaborator.phone, "role:",
-              display_role_status(collaborator.role))
-    return collaborators
+def get_all_users():
+    users = session.query(User).all()
+    for user in users:
+        print("id:", user.id, ",", "name:", user.name, "email:",
+              user.email, "phone:", user.phone, "role:",
+              display_role_status(user.role))
+    return users
 
 
 def get_all_clients():
     clients = session.query(Client).all()
     for client in clients:
-        support = session.query(Collaborator).filter(Collaborator.id
+        support = session.query(User).filter(User.id
                                                      == client.support_id).first()
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
@@ -200,7 +199,7 @@ def display(contracts):
             event = session.query(Event).filter(Event.id ==
                                                 contract.event_id).first()
 
-            support = session.query(Collaborator).filter(Collaborator.id
+            support = session.query(User).filter(User.id
                                                          == event.support_contact_id).first()
 
             print("id:", contract.id, "\n",
@@ -218,17 +217,18 @@ def display(contracts):
 @click.option('--email', prompt='email')
 @click.option('--phone', prompt='phone')
 @click.option('--role', prompt='role')
-def create_collaborator(name, email, phone, role):
+def create_user(name, email, phone, role):
     try:
-        if UserPermissions.can_create_collaborator():
+        if UserPermissions.can_create_user():
 
-            collaborator = Collaborator(
-                name=name, email=email, phone=phone, role=role)
-            session.add(collaborator)
+            user = User(
+                name=name, email=email, phone=phone,
+                role=display_role(int(role)))
+            session.add(user)
             session.commit()
-            print("✅ collaborator successfully created")
+            print("✅ user successfully created")
         else:
-            print("🛑 You don't have the permission to create a collaborator")
+            print("🛑 You don't have the permission to create a user")
     except Exception as e:
         # Alternatively the argument can be omitted
         print("ERROR")
@@ -248,9 +248,9 @@ def create_contract(client_id, event_id, response):
         if response == "y":
             session.add(contract)
             session.commit()
-            print("✅ collaborator successfully created")
+            print("✅ user successfully created")
     else:
-        print("🛑 You don't have the permission to create a collaborator")
+        print("🛑 You don't have the permission to create a user")
 
 
 @click.command()
@@ -296,18 +296,18 @@ def create_client(name, email, phone, company_name):
 @click.option('--name', prompt='name')
 @click.option('--email', prompt='email')
 @click.option('--phone', prompt='phone')
-def edit_collaborator(id, name, email, phone, role):
-    if UserPermissions.can_update_collaborator():
-        collaborator = session.query(Collaborator).filter(
-            Collaborator.id == int(id)).first()
-        collaborator.name = name
-        collaborator.email = email
-        collaborator.phone = phone
-        collaborator.role = role
+def edit_user(id, name, email, phone, role):
+    if UserPermissions.can_update_user():
+        user = session.query(User).filter(
+            User.id == int(id)).first()
+        user.name = name
+        user.email = email
+        user.phone = phone
+        user.role = role
         session.commit()
-        print("✅ collaborator successfully edited")
+        print("✅ user successfully edited")
     else:
-        print("🛑 You don't have the permission to edit a collaborator")
+        print("🛑 You don't have the permission to edit a user")
 
 
 def edit_client():
@@ -332,7 +332,7 @@ def edit_client():
 @click.option('--phone', prompt='phone')
 @click.option('--id', prompt='phone')
 def edit_one_client(id, name, email, phone):
-    if UserPermissions.can_update_collaborator():
+    if UserPermissions.can_update_user():
         client = session.query(Client).filter(
             Client.id == int(id)).first()
 
@@ -340,7 +340,7 @@ def edit_one_client(id, name, email, phone):
         client.email = email
         client.phone = phone
         session.commit()
-        print("✅ collaborator successfully edited")
+        print("✅ user successfully edited")
     else:
         print("🛑 You don't have the permission to create a client")
 
@@ -380,7 +380,7 @@ def edit_any_event(id, name, start, end, location, attendees, notes, status):
 def edit_event_with_no_support():
     event = session.query(Event).filter(Event.id == int(id)).first()
     support_contact_id = session.query(
-        Collaborator).filter(Collaborator.id == int(id)).first()
+        User).filter(User.id == int(id)).first()
     event.support_contact_id = support_contact_id
     session.commit()
 
@@ -406,7 +406,7 @@ def edit_contract():
             event = session.query(Event).filter(Event.id ==
                                                 contract.event_id).first()
 
-            support = session.query(Collaborator).filter(Collaborator.id
+            support = session.query(user).filter(user.id
                                                          == event.support_contact_id).first()
 
             print("id:", contract.id, "\n",
@@ -415,7 +415,7 @@ def edit_contract():
                   "event:", event.name, "\n", "status:",
                   display_contract_status(contract.status))
         edit_contract_my_clients()
-        print("✅ collaborator successfully edited")
+        print("✅ user successfully edited")
     else:
         print("🛑 You don't have the permission to create a client")
 
@@ -436,9 +436,9 @@ def edit_contract_my_clients(id, status):
 @click.option('--name', prompt='name')
 @click.option('--email', prompt='email')
 @click.option('--phone', prompt='phone')
-def delete_collaborator(id):
-    session.query(Collaborator).delete(
-        Collaborator.id == int(id)).first()
+def delete_user(id):
+    session.query(User).delete(
+        User.id == int(id)).first()
     print("user successfully deleted")
     session.commit()
 

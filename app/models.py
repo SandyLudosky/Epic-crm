@@ -1,22 +1,28 @@
 import enum
 from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import validates
 from .config import engine
 
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import ENUM as PythonEnum
 
 import datetime
 
 Base = declarative_base()
 
+ROLE = {
+    "SALES": 'sales',
+    "SUPPORT": 'support',
+    "MANAGER": 'manager'
+}
 
-class RoleEnum(enum.StrEnum):
-    sales = "sales"
-    support = "support"
-    manager = "manager"
+class RoleEnum(PythonEnum):
+    SALES = 'sales'
+    SUPPORT = 'support'
+    MANAGER = 'manager'
 
 
-class StatusEnum(enum.StrEnum):
+class StatusEnum(PythonEnum):
     created = "created"
     signed = "signed"
     paid = "paid"
@@ -32,8 +38,8 @@ class Client(Base):
     company_name = Column(String(50))
 
 
-class Collaborator(Base):
-    __tablename__ = 'collaborator'
+class User(Base):
+    __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
     email = Column(String(50))
@@ -64,7 +70,7 @@ class Event(Base):
     __tablename__ = 'event'
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
 
-    # support_contact_id = ForeignKey('collaborator.id', onupdate="CASCADE",
+    # support_contact_id = ForeignKey('User.id', onupdate="CASCADE",
     #                                 ondelete="CASCADE")
     client_id = Column(Integer)
     support_contact_id = Column(Integer, nullable=True)

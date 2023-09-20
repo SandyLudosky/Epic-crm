@@ -1,34 +1,34 @@
-from app.models import Contract, Event, Client, Collaborator, StatusEnum, RoleEnum
+from app.models import Contract, Event, Client, User, StatusEnum, ROLE
 from sqlalchemy import ForeignKey
 from app.config import session
 
 import datetime
 
-collaborators = [
+users = [
     {"name": 'sandra',
      "email": 'sandra@gmail.com',
      "phone": '444-340-211',
-     "role": "sales"},
+     "role": ROLE["SALES"]},
     {"name": 'mike',
      "email": 'mike@hotmal.com',
      "phone": '407-000-211',
-     "role":  "sales"},
+     "role":  ROLE["SALES"]},
     {"name": 'Daisy X',
      "email": 'daisy@hotmal.com',
      "phone": '416-340-211',
-     "role":  "sales"},
+     "role":  ROLE["SALES"]},
     {"name": 'claire',
      "email": 'claire@gmail.com',
      "phone": '416-222-333',
-     "role":  "support"},
+     "role":  ROLE["SUPPORT"]},
     {"name": 'Support Rep 2',
      "email": 'support2@gmail.com',
      "phone": '406-777-111',
-     "role": "support"},
+     "role": ROLE["SUPPORT"]},
     {"name": 'adele',
      "email": 'adele@gmail.com',
      "phone": '234-456-123',
-     "role": "manager"},
+     "role": ROLE["MANAGER"]},
 ]
 
 clients = [
@@ -102,13 +102,13 @@ contracts = [
 ]
 
 
-def create_collaborators():
-    for collaborator in collaborators:
-        collaborator = Collaborator(name=collaborator["name"],
-                                    email=collaborator["email"],
-                                    phone=collaborator["phone"],
-                                    role=collaborator["role"])
-        session.add(collaborator)
+def create_users():
+    for user in users:
+        user = User(name=user["name"],
+                                    email=user["email"],
+                                    phone=user["phone"],
+                                    role=user["role"])
+        session.add(user)
         session.commit()
 
 
