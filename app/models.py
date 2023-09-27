@@ -18,7 +18,7 @@ ROLE = {
 STATUS = {
     "CREATED": "created",
     "SIGNED": "signed",
-    "PAID ": "paid",
+    "PAID": "paid",
 }
 
 class Client(Base):

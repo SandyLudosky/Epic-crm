@@ -43,7 +43,7 @@ def selections(option):
         display_clients_events()
         create_contract()
     elif int(option) == 5:
-        display_all_contracts()
+        display_contracts()
         edit_contract()
     elif int(option) == 6:
         get_and_filter_all_contracts()
@@ -58,10 +58,9 @@ def selections(option):
         display_all_users()
         delete_user()
     elif int(option) == 11:
-        display_all_clients()
         create_client()
     elif int(option) == 12:
-        display_my_clients()
+        display_my_clients_contracts()
         edit_one_client()
     elif int(option) == 13:
         display_all_clients()
@@ -105,8 +104,19 @@ def display_contracts():
     else:
         print("🛑 You don't have the permission to create a contract")
 
-def display_all_contracts():
+def display_contracts():
     if UserPermissions.can_read_contract():
+        current_user = get_current_user()
+        if current_user.role == ROLE["SALES"]:
+            display_my_clients_contracts(current_user)
+        elif current_user.role == ROLE["MANAGER"]:
+            display_all_contracts()
+        else:
+            print("🛑 You don't have the permission to read a contract")
+
+
+def display_all_contracts():
+    try:
         contracts = session.query(Contract).all()
         for contract in contracts:
             client = session.query(Client).filter(Client.id ==
@@ -121,8 +131,32 @@ def display_all_contracts():
             client_name = client.name if client else "No Client yet"
             print("id:", contract.id, "client:", client_name, "support: ", support_name, "event:", event.name,  "status:", contract.status)
         return contracts
-    else:
-        print("🛑 You don't have the permission to view contracts")
+    except Exception as e:
+        # Alternatively the argument can be omitted
+        print("ERROR")
+        print(str(e))
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.capture_message('Something went wrong')
+
+def display_my_clients_contracts(current_user):
+    try:
+
+        clients = session.query(Client).filter(Client.support_id
+                                                        == current_user.id)
+        print(current_user.id)
+        print(clients)
+        for client in clients:
+            print("id:", client.id, ",", "name:", client.name, "email:",
+                    client.email, "phone:", client.phone, "company name:",
+                    client.company_name, "support: ", current_user.name)
+
+        return clients
+    except Exception as e:
+        # Alternatively the argument can be omitted
+        print("ERROR")
+        print(str(e))
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.capture_message('Something went wrong')
 
 
 
@@ -179,31 +213,6 @@ def display_all_clients():
 
     return clients
 
-
-def display_my_clients():
-    try:
-        if UserPermissions.can_update_client():
-            current_user = get_current_user()
-            clients = session.query(Client).filter(Client.support_id
-                                                            == current_user.id)
-            print(current_user.id)
-            print(clients)
-            for client in clients:
-                print("id:", client.id, ",", "name:", client.name, "email:",
-                      client.email, "phone:", client.phone, "company name:",
-                      client.company_name, "support: ", current_user.name)
-
-            return clients
-        else:
-            print("🛑 You don't have the permission to view the list of clients")
-
-    except Exception as e:
-        # Alternatively the argument can be omitted
-        print("ERROR")
-        print(str(e))
-        sentry_sdk.capture_exception(e)
-        sentry_sdk.capture_message('Something went wrong')
-
 def display_clients_events():
     events = session.query(Event).all()
     clients = session.query(Client).all()
@@ -228,19 +237,17 @@ def filter_display_contracts(value):
     if int(value) == 1:
         contracts = session.query(Contract).filter(
             Contract.status == STATUS["CREATED"]).all()
-        display(contracts)
     elif int(value) == 2:
         contracts = session.query(Contract).filter(
             Contract.status == STATUS["SIGNED"]).all()
-        display(contracts)
     elif int(value) == 3:
         contracts = session.query(Contract).filter(
             Contract.status == STATUS["PAID"]).all()
-        display(contracts)
     else:
         print("Invalid option")
-    # restart()
-    # restart_selections()
+    display(contracts)
+    restart()
+    restart_selections()
 
 
 def display(contracts):
@@ -324,6 +331,13 @@ def create_event(name, start, end, location, attendees, notes):
     session.commit()
 
 
+def create_event_for_my_client():
+    current_user = get_current_user()
+    clients = session.query(Client).filter(Client.support_id == current_user.id)
+    pass
+
+
+
 @click.command()
 @click.option('--name', prompt='name')
 @click.option('--email', prompt='email')
@@ -375,16 +389,16 @@ def edit_one_client():
         name = input(f"name({client.name}): ")
         email = input(f"email({client.email}): ")
         phone = input(f"phone({client.phone}): ")
-        role = input(f"company name({client.role}): ")
+        company = input(f"company name({client.company_name}): ")
 
         client.name = name if name else client.name
         client.email = email if email else client.email
         client.phone = phone if phone else client.phone
-        client.role = role if role else client.role
+        client.company_name = company if company else client.company_name
         session.commit()
         print("✅ user successfully edited")
     else:
-        print("🛑 You don't have the permission to create a client")
+        print("🛑 You don't have the permission to edit a client")
 
 
 def edit_event():
@@ -450,6 +464,18 @@ def edit_contract(id):
             print("✅ contract successfully edited")
         else:
             print("🛑 You don't have the permission to update a contract")
+    except Exception as e:
+        print(str(e))
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.capture_message('Something went wrong')
+
+
+def display_my_contract(id):
+    current_user = get_current_user()
+    try:
+        client = session.query(Client).filter(Client.id == int(id)).first()
+        contracts = session.query(Contract).filter(client.support_id == current_user.id).all()
+        display(contracts)
     except Exception as e:
         print(str(e))
         sentry_sdk.capture_exception(e)
