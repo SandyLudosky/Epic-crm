@@ -17,7 +17,6 @@ class UserPermissions:
         print(current_user.role)
         return True if current_user.role == ROLE["MANAGER"] else False
 
-
     @staticmethod
     def can_update_user() -> bool:
         current_user = get_current_user()
@@ -38,13 +37,15 @@ class UserPermissions:
     @staticmethod
     def can_read_contract() -> bool:
         current_user = get_current_user()
-        return True if current_user.role == ROLE["SALES"] else False
+        return True if current_user.role in [ROLE["SALES"],ROLE["MANAGER"]] else False
 
 
     @staticmethod
     def can_update_contract() -> bool:
         current_user = get_current_user()
-        return True if current_user in [ROLE["MANAGER"], ROLE["SALES"]] else False
+        print(current_user.role)
+        current_user = get_current_user()
+        return True if current_user.role in ROLE["MANAGER"] else False
 
     # CRUD permissions on table client
     @staticmethod

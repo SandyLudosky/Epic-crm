@@ -20,7 +20,7 @@ def menu():
     print("=========================")
     print("[7] - create new user")
     print("[8] - edit user")
-    print("[9] - display all user")
+    print("[9] - display all users")
     print("[10] - delete user")
     print("=========================")
     print("[11] - create new client")

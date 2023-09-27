@@ -1,28 +1,17 @@
 from app.config import session
-from app.models import User, StatusEnum, ROLE
+from app.models import User, ROLE, STATUS
 from sqlalchemy import literal_column
 
 
 def display_contract_status(value):
-    if value == 1:
-        return "created"
-    elif value == 2:
-        return "signed"
-    elif value == 3:
-        return "paid"
+    if int(value) == 1:
+        return STATUS["CREATED"]
+    elif int(value) == 2:
+        return STATUS["SIGNED"]
+    elif int(value) == 3:
+        return STATUS["PAID"]
     else:
         return "Invalid status"
-
-
-def display_role(value):
-    if value == 1:
-        return "sales"
-    elif value == 2:
-        return "support"
-    elif value == 3:
-        return "manager"
-    else:
-        return "Invalid role"
 
 
 def get_role(role):

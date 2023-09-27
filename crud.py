@@ -1,4 +1,4 @@
-from app.models import Contract, Event, Client, User, StatusEnum, ROLE
+from app.models import Contract, Event, Client, User, ROLE, STATUS
 from sqlalchemy import ForeignKey
 from app.config import session
 
@@ -54,7 +54,7 @@ clients = [
 ]
 
 events = [
-    {"contact": 1,
+    {"client_id": 1,
      "support": 2,
      "name": 'Event 1',
      "start_date": datetime.datetime(2003, 11, 8),
@@ -62,15 +62,15 @@ events = [
      "location": 'Montreal',
      "attendees": 100,
      "notes": "This is a note"},
-    {"contact": 2,
-     "support": 3,
+    {"client_id": 2,
+     "support": None,
      "name": 'Event 2',
      "start_date": datetime.datetime(1995, 2, 3),
      "end_date": datetime.datetime(1995, 2, 10),
      "location": 'Toronto',
      "attendees": 200,
      "notes": "This is a note"},
-    {"contact": 3,
+    {"client_id": 3,
      "support": 3,
      "name": 'Event 3',
      "start_date": datetime.datetime(2015, 7, 1),
@@ -86,19 +86,19 @@ contracts = [
      "event": 1,
      "created_at": datetime.datetime(2003, 9, 8),
      "cost": 1000.20,
-     "status": "created"},
+     "status": STATUS["CREATED"]},
     {"client": 2,
      "support": 2,
      "event": 2,
      "created_at": datetime.datetime(1995, 2, 3),
      "cost": 999.00,
-     "status": "created"},
+     "status": STATUS["CREATED"]},
     {"client": 3,
      "support": 3,
      "event": 3,
      "created_at": datetime.datetime(2015, 7, 1),
      "cost": 199.00,
-     "status": "created"},
+     "status": STATUS["CREATED"]}
 ]
 
 
@@ -138,6 +138,7 @@ def create_contracts():
 def create_events():
     for event in events:
         event = Event(support_contact_id=event["support"],
+                      client_id=event["client_id"],
                       name=event["name"],
                       start_date=event["start_date"],
                       end_date=event["end_date"],

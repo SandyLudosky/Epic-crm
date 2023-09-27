@@ -1,7 +1,6 @@
 import enum
-from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import validates
 from .config import engine
 
 from sqlalchemy.dialects.postgresql import ENUM as PythonEnum
@@ -16,17 +15,11 @@ ROLE = {
     "MANAGER": 'manager'
 }
 
-class RoleEnum(PythonEnum):
-    SALES = 'sales'
-    SUPPORT = 'support'
-    MANAGER = 'manager'
-
-
-class StatusEnum(PythonEnum):
-    created = "created"
-    signed = "signed"
-    paid = "paid"
-
+STATUS = {
+    "CREATED": "created",
+    "SIGNED": "signed",
+    "PAID ": "paid",
+}
 
 class Client(Base):
     __tablename__ = 'client'

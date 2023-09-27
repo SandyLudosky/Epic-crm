@@ -4,11 +4,11 @@ import datetime
 from app.config import session
 
 
-from app.models import Contract, Event, Client, User, ROLE
+from app.models import Contract, Event, Client, User, ROLE,STATUS
 from app.menu import menu, roles_options, restart, contract_filters
 from app.permissions import UserPermissions
 
-from utils import display_contract_status, display_role
+from utils import display_contract_status, get_role
 import sentry_sdk
 
 # MENU
@@ -43,25 +43,28 @@ def selections(option):
         display_clients_events()
         create_contract()
     elif int(option) == 5:
-        get_all_contracts()
+        display_all_contracts()
         edit_contract()
     elif int(option) == 6:
-        get_all_contracts()
+        get_and_filter_all_contracts()
     elif int(option) == 7:
-        roles_options()
         create_user()
     elif int(option) == 8:
+        display_all_users()
         edit_user()
     elif int(option) == 9:
-        get_all_users()
+        display_all_users()
     elif int(option) == 10:
+        display_all_users()
         delete_user()
     elif int(option) == 11:
+        display_all_clients()
         create_client()
     elif int(option) == 12:
-        edit_client()
+        display_my_clients()
+        edit_one_client()
     elif int(option) == 13:
-        get_all_clients()
+        display_all_clients()
     else:
         print("Invalid option")
     restart()
@@ -84,8 +87,25 @@ def get_current_user():
 
 # READ
 
+def display_contracts():
+    if UserPermissions.can_read_contract():
+        contracts = session.query(Contract).all()
+        for contract in contracts:
+            client = session.query(Client).filter(Client.id ==
+                                                  contract.client_id).first()
+            event = session.query(Event).filter(Event.id ==
+                                                contract.event_id).first()
 
-def get_all_contracts():
+            support = session.query(User).filter(User.id
+                                                         == event.support_contact_id).first()
+            support_name = support.name if support else "No support assigned"
+            client_name = client.name if support else "No Client yet    "
+            print("id:", contract.id, "client:", client_name, "support: ", support_name, "event:", event.name,  "status:", contract.status)
+        return contracts
+    else:
+        print("🛑 You don't have the permission to create a contract")
+
+def display_all_contracts():
     if UserPermissions.can_read_contract():
         contracts = session.query(Contract).all()
         for contract in contracts:
@@ -97,11 +117,29 @@ def get_all_contracts():
             support = session.query(User).filter(User.id
                                                          == event.support_contact_id).first()
 
-            print("id:", contract.id, "\n",
-                  "\n", "client:", client.name, "\n",
-                  "support: ", support.name, "\n",
-                  "event:", event.name, "\n", "status:",
-                  display_contract_status(contract.status))
+            support_name = support.name if support else "No support assigned"
+            client_name = client.name if client else "No Client yet"
+            print("id:", contract.id, "client:", client_name, "support: ", support_name, "event:", event.name,  "status:", contract.status)
+        return contracts
+    else:
+        print("🛑 You don't have the permission to view contracts")
+
+
+
+def get_and_filter_all_contracts():
+    if UserPermissions.can_read_contract():
+        contracts = session.query(Contract).all()
+        for contract in contracts:
+            client = session.query(Client).filter(Client.id ==
+                                                  contract.client_id).first()
+            event = session.query(Event).filter(Event.id ==
+                                                contract.event_id).first()
+
+            support = session.query(User).filter(User.id
+                                                         == event.support_contact_id).first()
+            support_name = support.name if support else "No support assigned"
+            client_name = client.name if support else "No Client yet    "
+            print("id:", contract.id, "client:", client_name, "support: ", support_name, "event:", event.name,  "status:", contract.status)
         contract_filters()
         filter_display_contracts()
         return contracts
@@ -110,51 +148,65 @@ def get_all_contracts():
 
 
 def get_all_events():
-    current_user = get_current_user()
     events = session.query(Event).all()
-    events_no_support = session.query(Event).filter(
-        Event.support_contact_id is None).all()
-
-    if UserPermissions.can_display_events_without_support(current_user):
-        for event in events_no_support:
-            print("id:", event.id, ",", "name:", event.name, "start:",
+    for event in events:
+        print("id:", event.id, ",", "name:", event.name, "start:",
                   event.start_date, "end:", event.end_date, "location:",
                   event.location, "attendees:", event.attendees,
                   "notes:", event.notes)
-    else:
-        for event in events:
-            print("id:", event.id, ",", "name:", event.name, "start:",
-                  event.start_date, "end:", event.end_date, "location:",
-                  event.location, "attendees:", event.attendees,
-                  "notes:", event.notes)
-    return events
 
 
-def get_all_users():
+
+
+def display_all_users():
     users = session.query(User).all()
     for user in users:
         print("id:", user.id, ",", "name:", user.name, "email:",
               user.email, "phone:", user.phone, "role:",
-              display_role_status(user.role))
+              user.role)
     return users
 
 
-def get_all_clients():
+def display_all_clients():
     clients = session.query(Client).all()
     for client in clients:
         support = session.query(User).filter(User.id
                                                      == client.support_id).first()
+        support_name = support.name if support else "No support assigned"
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
-              client.company_name, "support: ", support.name)
+              client.company_name, "support: ", support_name)
 
     return clients
 
 
+def display_my_clients():
+    try:
+        if UserPermissions.can_update_client():
+            current_user = get_current_user()
+            clients = session.query(Client).filter(Client.support_id
+                                                            == current_user.id)
+            print(current_user.id)
+            print(clients)
+            for client in clients:
+                print("id:", client.id, ",", "name:", client.name, "email:",
+                      client.email, "phone:", client.phone, "company name:",
+                      client.company_name, "support: ", current_user.name)
+
+            return clients
+        else:
+            print("🛑 You don't have the permission to view the list of clients")
+
+    except Exception as e:
+        # Alternatively the argument can be omitted
+        print("ERROR")
+        print(str(e))
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.capture_message('Something went wrong')
+
 def display_clients_events():
     events = session.query(Event).all()
     clients = session.query(Client).all()
-
     print("======Events: ======")
     for event in events:
         print("id:", event.id, ",", "name:", event.name, "start:",
@@ -170,23 +222,25 @@ def display_clients_events():
 
 
 @click.command()
-@click.option('--filter', prompt='filter')
-def filter_display_contracts(filter):
+@click.option('--value', prompt='filter')
+def filter_display_contracts(value):
     contracts = []
-    if filter == int(1):
+    if int(value) == 1:
         contracts = session.query(Contract).filter(
-            Contract.status == "created").all()
-    elif filter == int(2):
+            Contract.status == STATUS["CREATED"]).all()
+        display(contracts)
+    elif int(value) == 2:
         contracts = session.query(Contract).filter(
-            Contract.status == "signed").all()
-    elif filter == int(3):
+            Contract.status == STATUS["SIGNED"]).all()
+        display(contracts)
+    elif int(value) == 3:
         contracts = session.query(Contract).filter(
-            Contract.status == "paid").all()
+            Contract.status == STATUS["PAID"]).all()
+        display(contracts)
     else:
         print("Invalid option")
-    display(contracts)
-    restart()
-    restart_selections()
+    # restart()
+    # restart_selections()
 
 
 def display(contracts):
@@ -201,29 +255,27 @@ def display(contracts):
 
             support = session.query(User).filter(User.id
                                                          == event.support_contact_id).first()
-
+            support_name = support.name if support else "No support assigned"
             print("id:", contract.id, "\n",
                   "\n", "client:", client.name, "\n",
-                  "support: ", support.name, "\n",
-                  "event:", event.name, "\n", "status:",
-                  display_contract_status(contract.status))
+                  "support: ", support_name, "\n",
+                  "event:", event.name, "\n", "status:", contract.status)
 
 
 # CREATE
-
 
 @click.command()
 @click.option('--name', prompt='name')
 @click.option('--email', prompt='email')
 @click.option('--phone', prompt='phone')
-@click.option('--role', prompt='role')
-def create_user(name, email, phone, role):
+def create_user(name, email, phone):
     try:
         if UserPermissions.can_create_user():
-
+            roles_options()
+            role = input("role: ")
             user = User(
                 name=name, email=email, phone=phone,
-                role=display_role(int(role)))
+                role=get_role(int(role)))
             session.add(user)
             session.commit()
             print("✅ user successfully created")
@@ -290,55 +342,45 @@ def create_client(name, email, phone, company_name):
 
 
 # UPDATE
-
-
 @click.command()
-@click.option('--name', prompt='name')
-@click.option('--email', prompt='email')
-@click.option('--phone', prompt='phone')
-def edit_user(id, name, email, phone, role):
+def edit_user():
+    user_id = input("select user: ")
     if UserPermissions.can_update_user():
         user = session.query(User).filter(
-            User.id == int(id)).first()
-        user.name = name
-        user.email = email
-        user.phone = phone
-        user.role = role
+            User.id == int(user_id)).first()
+
+        name = input(f"name({user.name}): ")
+        email = input(f"email({user.email}): ")
+        phone = input(f"phone({user.phone}): ")
+        roles_options()
+        role = input(f"role({user.role}): ")
+
+        user.name = name if name else user.name
+        user.email = email if email else user.email
+        user.phone = phone if phone else user.phone
+        user.role = get_role(int(role)) if role else user.role
         session.commit()
         print("✅ user successfully edited")
     else:
         print("🛑 You don't have the permission to edit a user")
 
 
-def edit_client():
-    current_user = get_current_user()
-    if UserPermissions.can_update_client():
-
-        clients = session.query(Client).filter(
-            Client.support_id == current_user.id).first()
-        edit_one_client()
-        for client in clients:
-            print("id:", client.id, ",", "name:", client.name, "email:",
-                  client.email, "phone:", client.phone, "company name:",
-                  client.company_name)
-        print("✅ client successfully edited")
-    else:
-        print("🛑 You don't have the permission to create a client")
-
-
 @click.command()
-@click.option('--name', prompt='name')
-@click.option('--email', prompt='email')
-@click.option('--phone', prompt='phone')
-@click.option('--id', prompt='phone')
-def edit_one_client(id, name, email, phone):
-    if UserPermissions.can_update_user():
+def edit_one_client():
+    client_id = input("select client: ")
+    if UserPermissions.can_update_client():
         client = session.query(Client).filter(
-            Client.id == int(id)).first()
+            Client.id == int(client_id)).first()
 
-        client.name = name
-        client.email = email
-        client.phone = phone
+        name = input(f"name({client.name}): ")
+        email = input(f"email({client.email}): ")
+        phone = input(f"phone({client.phone}): ")
+        role = input(f"company name({client.role}): ")
+
+        client.name = name if name else client.name
+        client.email = email if email else client.email
+        client.phone = phone if phone else client.phone
+        client.role = role if role else client.role
         session.commit()
         print("✅ user successfully edited")
     else:
@@ -393,31 +435,25 @@ def edit_event_support(id, support_contact_id):
     event.support_contact_id = support_contact_id
     session.commit()
 
+@click.command()
+@click.option('--id', prompt='select contract to edit')
+def edit_contract(id):
+    try:
+        if UserPermissions.can_update_contract():
+            contract = session.query(Contract).filter(
+            Contract.id == int(id)).first()
+            contract_filters()
 
-def edit_contract():
-    current_user = get_current_user()
-    client = session.query(Client).filter(
-        Client.support_id == current_user.id).first()
-    contracts = session.query(Contract).filter(
-        Contract.client_id == client.id).all()
-    if UserPermissions.can_update_contract():
-        for contract in contracts:
-
-            event = session.query(Event).filter(Event.id ==
-                                                contract.event_id).first()
-
-            support = session.query(user).filter(user.id
-                                                         == event.support_contact_id).first()
-
-            print("id:", contract.id, "\n",
-                  "\n", "client:", client.name, "\n",
-                  "support: ", support.name, "\n",
-                  "event:", event.name, "\n", "status:",
-                  display_contract_status(contract.status))
-        edit_contract_my_clients()
-        print("✅ user successfully edited")
-    else:
-        print("🛑 You don't have the permission to create a client")
+            status = input(f"Edit current status: ")
+            contract.status = display_contract_status(status)
+            session.commit()
+            print("✅ contract successfully edited")
+        else:
+            print("🛑 You don't have the permission to update a contract")
+    except Exception as e:
+        print(str(e))
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.capture_message('Something went wrong')
 
 
 @click.command()
@@ -433,15 +469,21 @@ def edit_contract_my_clients(id, status):
 
 
 @click.command()
-@click.option('--name', prompt='name')
-@click.option('--email', prompt='email')
-@click.option('--phone', prompt='phone')
+@click.option('--id', prompt='select user:')
 def delete_user(id):
-    session.query(User).delete(
-        User.id == int(id)).first()
-    print("user successfully deleted")
-    session.commit()
-
+    try:
+        if UserPermissions.can_delete_user():
+            session.query(User).delete(User.id == int(id))
+            session.commit()
+            print("✅ user successfully edited")
+        else:
+            print("🛑 You don't have the permission to edit a user")
+    except Exception as e:
+        # Alternatively the argument can be omitted
+        print("ERROR")
+        print(str(e))
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.capture_message('Something went wrong')
 
 if __name__ == '__main__':
     menu()
