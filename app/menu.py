@@ -37,6 +37,15 @@ def restart():
     print("\n")
 
 
+def display_events_menu():
+    print("\n")
+    print("======== MENU =========")
+    print("[1] - display all events")
+    print("[2] - filter event with no support contact")
+    print("=========================")
+    print("\n")
+
+
 def contract_filters():
     print("\n")
     print("======== CONTRACTS =========")

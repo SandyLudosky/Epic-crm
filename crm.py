@@ -5,7 +5,7 @@ from app.config import session
 
 
 from app.models import Contract, Event, Client, User, ROLE,STATUS
-from app.menu import menu, roles_options, restart, contract_filters
+from app.menu import menu, roles_options, restart, contract_filters, display_events_menu
 from app.permissions import UserPermissions
 
 from utils import display_contract_status, get_role
@@ -35,10 +35,10 @@ def selections(option):
     if int(option) == 1:
         create_event()
     elif int(option) == 2:
-        get_all_events()
+        display_all_events()
         edit_event()
     elif int(option) == 3:
-        get_all_events()
+        display_all_events()
     elif int(option) == 4:
         display_clients_events()
         create_contract()
@@ -181,17 +181,6 @@ def get_and_filter_all_contracts():
         print("🛑 You don't have the permission to create a contract")
 
 
-def get_all_events():
-    events = session.query(Event).all()
-    for event in events:
-        print("id:", event.id, ",", "name:", event.name, "start:",
-                  event.start_date, "end:", event.end_date, "location:",
-                  event.location, "attendees:", event.attendees,
-                  "notes:", event.notes)
-
-
-
-
 def display_all_users():
     users = session.query(User).all()
     for user in users:
@@ -212,6 +201,44 @@ def display_all_clients():
               client.company_name, "support: ", support_name)
 
     return clients
+
+
+def display_all_events():
+    try:
+        if UserPermissions.can_manager_read_events():
+            display_events_menu()
+            choice = input("Your choice: ")
+            events = []
+            if choice == "1":
+                events = session.query(Event).all()
+            elif choice == "2":
+                events = session.query(Event).filter(Event.support_contact.id is None)
+
+            for event in events:
+                print(f"id:[{event.id}]", ",", "name:", event.name, "start:",
+                    event.start_date, "end:", event.end_date, "location:",
+                    event.location, "attendees:", event.attendees,
+                    "notes:", event.notes)
+
+        elif UserPermissions.can_support_read_events():
+            current_user = get_current_user
+            events = session.query(Event).filter(current_user.id
+                                                        == event.support_contact.id)
+            for event in events:
+                print(f"id:[{event.id}]", ",", "name:", event.name, "start:",
+                    event.start_date, "end:", event.end_date, "location:",
+                    event.location, "attendees:", event.attendees,
+                    "notes:", event.notes)
+        else:
+            print("🛑 You don't have the permission to view events")
+
+    except Exception as e:
+        # Alternatively the argument can be omitted
+        print("ERROR")
+        print(str(e))
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.capture_message('Something went wrong')
+
 
 def display_clients_events():
     events = session.query(Event).all()
@@ -268,9 +295,7 @@ def display(contracts):
                   "support: ", support_name, "\n",
                   "event:", event.name, "\n", "status:", contract.status)
 
-
 # CREATE
-
 @click.command()
 @click.option('--name', prompt='name')
 @click.option('--email', prompt='email')

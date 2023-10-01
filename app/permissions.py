@@ -43,8 +43,6 @@ class UserPermissions:
     @staticmethod
     def can_update_contract() -> bool:
         current_user = get_current_user()
-        print(current_user.role)
-        current_user = get_current_user()
         return True if current_user.role in [ROLE["SALES"], ROLE["MANAGER"]] else False
 
     # CRUD permissions on table client
@@ -65,7 +63,18 @@ class UserPermissions:
         current_user = get_current_user()
         return True if current_user.role == ROLE["MANAGER"] else False
 
+    @staticmethod
     def can_update_events_without_support() -> bool:
+        current_user = get_current_user()
+        return True if current_user.role == ROLE["MANAGER"] else False
+
+    @staticmethod
+    def can_support_read_events() -> bool:
+        current_user = get_current_user()
+        return True if current_user.role == ROLE["SUPPORT"] else False
+
+    @staticmethod
+    def can_manager_read_events() -> bool:
         current_user = get_current_user()
         return True if current_user.role == ROLE["MANAGER"] else False
 
