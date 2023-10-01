@@ -1,4 +1,4 @@
-import enum
+import bcrypt
 from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy.ext.declarative import declarative_base
 from .config import engine
@@ -34,11 +34,18 @@ class Client(Base):
 class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    name = Column(String(50))
-    email = Column(String(50))
-    phone = Column(String(20))
-    role = Column(String(20))
-    # role = Column(Enum(RoleEnum, name="role"), default="sales")
+    name = Column(String(50), nullable=False)
+    email = Column(String(50), nullable=False)
+    phone = Column(String(20), nullable=True)
+    password = Column(String, nullable=False)
+
+    def set_password(self, password):
+        # Hachez le mot de passe avec bcrypt avant de le stocker
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    def check_password(self, password):
+        # Vérifiez si le mot de passe correspond au hachage stocké
+        return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
 
 # Roles:
 # sales representative = peut créer des events, changer les contrats de leurs clients

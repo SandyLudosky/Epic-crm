@@ -2,7 +2,5 @@ bcrypt==4.0.1
 click==8.1.7
 Faker==19.6.1
 faker_sqlalchemy==0.10.2208140
-greenlet==2.0.2
 sentry-sdk==1.31.0
 SQLAlchemy==1.4.49
-

@@ -2,6 +2,16 @@ import os
 import click
 import datetime
 from app.config import session
+from app.auth  import (
+    Authentication,
+    authenticate_user,
+    sauvegarder_session,
+    recuperer_session,
+    authentification_initiale,
+    auto_login
+)
+from app.views import get_user_data, get_user_login_data
+
 
 
 from app.models import Contract, Event, Client, User, ROLE,STATUS
@@ -14,8 +24,16 @@ import sentry_sdk
 # MENU
 USER = os.getenv('USER')
 
+
 def get_current_user():
     return session.query(User).filter(User.name == USER).first()
+
+
+def start():
+    name, password = get_user_login_data()
+    auth_object = authentification_initiale(session, name, password)
+    print(auth_object)
+
 
 @click.command()
 @click.option('--option', prompt='Your choice',
@@ -70,6 +88,7 @@ def selections(option):
     restart_selections()
 
 
+
 @click.command()
 @click.option('--option', prompt='Your choice',
               help='Select option')
@@ -103,6 +122,7 @@ def display_contracts():
         return contracts
     else:
         print("🛑 You don't have the permission to create a contract")
+
 
 def display_contracts():
     if UserPermissions.can_read_contract():
@@ -537,5 +557,6 @@ def delete_user(id):
         sentry_sdk.capture_message('Something went wrong')
 
 if __name__ == '__main__':
-    menu()
-    selections()
+    start()
+    # menu()
+    # selections()
