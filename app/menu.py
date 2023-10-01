@@ -54,3 +54,9 @@ def contract_filters():
     print("[1] - created")
     print("[2] - signed")
     print("[3] - paid")
+
+
+def login_menu():
+    print("=======================")
+    print("[14] - logout")
+    print("[15] - exit")

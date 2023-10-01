@@ -106,7 +106,8 @@ def create_users():
     for user in users:
         user = User(name=user["name"],
                     email=user["email"],
-                    phone=user["phone"])
+                    phone=user["phone"],
+                    role=user["role"])
         user.set_password("test123")
         session.add(user)
         session.commit()

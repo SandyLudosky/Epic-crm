@@ -8,31 +8,33 @@ from app.auth  import (
     sauvegarder_session,
     recuperer_session,
     authentification_initiale,
-    auto_login
+    auto_login,
+    get_current_user,
+    logout_user
 )
 from app.views import get_user_data, get_user_login_data
-
-
-
 from app.models import Contract, Event, Client, User, ROLE,STATUS
-from app.menu import menu, roles_options, restart, contract_filters, display_events_menu
+from app.menu import menu, roles_options, restart, login_menu, \
+    contract_filters, display_events_menu
 from app.permissions import UserPermissions
 
 from utils import display_contract_status, get_role
 import sentry_sdk
 
-# MENU
-USER = os.getenv('USER')
-
-
-def get_current_user():
-    return session.query(User).filter(User.name == USER).first()
-
 
 def start():
-    name, password = get_user_login_data()
-    auth_object = authentification_initiale(session, name, password)
-    print(auth_object)
+    user_id = get_current_user(session)
+    if user_id:
+        print("Welcome back", user_id)
+        menu()
+        login_menu()
+        print("\n")
+        selections()
+    else:
+        name, password = get_user_login_data()
+        user_id = authentification_initiale(session, name, password)
+
+        start()
 
 
 @click.command()
@@ -44,7 +46,6 @@ def restart_selections(option):
         selections()
     elif int(option) == 2:
         exit()
-
 
 @click.command()
 @click.option('--option', prompt='Your choice',
@@ -82,6 +83,10 @@ def selections(option):
         edit_one_client()
     elif int(option) == 13:
         display_all_clients()
+    elif int(option) == 14:
+        logout_user()
+    elif int(option) == 15:
+        exit()
     else:
         print("Invalid option")
     restart()
@@ -98,10 +103,6 @@ def restart_selections(option):
         selections()
     elif int(option) == 2:
         exit()
-
-
-def get_current_user():
-    return session.query(User).filter(User.name == USER).first()
 
 # READ
 
@@ -126,7 +127,7 @@ def display_contracts():
 
 def display_contracts():
     if UserPermissions.can_read_contract():
-        current_user = get_current_user()
+        current_user = get_current_user(session)
         if current_user.role == ROLE["SALES"]:
             display_my_clients_contracts(current_user)
         elif current_user.role == ROLE["MANAGER"]:
@@ -241,7 +242,7 @@ def display_all_events():
                     "notes:", event.notes)
 
         elif UserPermissions.can_support_read_events():
-            current_user = get_current_user
+            current_user = get_current_user(session)
             events = session.query(Event).filter(current_user.id
                                                         == event.support_contact.id)
             for event in events:
@@ -377,7 +378,7 @@ def create_event(name, start, end, location, attendees, notes):
 
 
 def create_event_for_my_client():
-    current_user = get_current_user()
+    current_user = get_current_user(session)
     clients = session.query(Client).filter(Client.support_id == current_user.id)
     pass
 
@@ -389,7 +390,7 @@ def create_event_for_my_client():
 @click.option('--phone', prompt='phone')
 @click.option('--company_name', prompt='company')
 def create_client(name, email, phone, company_name):
-    current_user = get_current_user()
+    current_user = get_current_user(session)
     if UserPermissions.can_create_client():
         client = Client(name=name, email=email, phone=phone,
                         company_name=company_name, support_id=current_user.id)
@@ -447,7 +448,7 @@ def edit_one_client():
 
 
 def edit_event():
-    current_user = get_current_user
+    current_user = get_current_user(session)
     if UserPermissions.can_display_events_without_support(current_user):
         edit_event_with_no_support()
     else:
@@ -516,7 +517,7 @@ def edit_contract(id):
 
 
 def display_my_contract(id):
-    current_user = get_current_user()
+    current_user = get_current_user(session)
     try:
         client = session.query(Client).filter(Client.id == int(id)).first()
         contracts = session.query(Contract).filter(client.support_id == current_user.id).all()

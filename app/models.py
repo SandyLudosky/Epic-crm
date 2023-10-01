@@ -37,6 +37,7 @@ class User(Base):
     name = Column(String(50), nullable=False)
     email = Column(String(50), nullable=False)
     phone = Column(String(20), nullable=True)
+    role = Column(String(20), nullable=False)
     password = Column(String, nullable=False)
 
     def set_password(self, password):

@@ -11,6 +11,7 @@ class Authentication:
 
 
 def authenticate_user(session, name, password):
+    print("authenticate_user", name, password, session)
     try:
         # Récupérer l' ser par son nom d'utilisateur
         user = session.query(User).filter_by(name=name).one()
@@ -24,10 +25,19 @@ def authenticate_user(session, name, password):
     return None  # Authentification échouée
 
 
-def sauvegarder_session(session_id):
+def get_current_user(session):
+    file = recuperer_session()
+    user_id = file.split("_")[0]
+    user = session.query(User).filter_by(name=user_id).one()
+    print("get_current_user", user)
+    return user
+
+
+def sauvegarder_session(session_id, user_id):
     # Fonction pour sauvegarder la session
     with open(SESSION_FILE, "wb") as file:
         pickle.dump(session_id, file)
+        pickle.dump(user_id, file)
 
 
 def recuperer_session():
@@ -43,7 +53,8 @@ def authentification_initiale(session, name, password):
     user = authenticate_user(session, name, password)
     if user:
         session_id = f"{name}_{user.id}"  # Créer un ID de session unique
-        sauvegarder_session(session_id)
+        user_id = user.id
+        sauvegarder_session(session_id, user_id)
         print("Authentification réussie.")
         return user.id
     else:
@@ -72,7 +83,8 @@ def is_admin(session, user_id):
 def logout_user():
     if os.path.exists(SESSION_FILE):
         os.remove(SESSION_FILE)
-    print("User has been succefull logout!")
+    print("User successfully logged out!")
+    exit()
 
 
 def admin_required(session):
