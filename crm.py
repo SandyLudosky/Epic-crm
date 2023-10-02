@@ -1,39 +1,39 @@
-import os
+import sentry_sdk
 import click
 import datetime
 from app.config import session
-from app.auth  import (
-    Authentication,
-    authenticate_user,
-    sauvegarder_session,
-    recuperer_session,
+from app.auth import (
     authentification_initiale,
-    auto_login,
     get_current_user,
     logout_user
 )
-from app.views import get_user_data, get_user_login_data
-from app.models import Contract, Event, Client, User, ROLE,STATUS
+from app.views import get_user_login_data
+from app.models import Contract, Event, Client, User, ROLE, STATUS
 from app.menu import menu, roles_options, restart, login_menu, \
     contract_filters, display_events_menu
 from app.permissions import UserPermissions
 
 from utils import display_contract_status, get_role
-import sentry_sdk
+
+from utils import bcolors
+
+
+blue = bcolors["blue"]
+cyan = bcolors["cyan"]
+green = bcolors["green"]
 
 
 def start():
-    user_id = get_current_user(session)
-    if user_id:
-        print("Welcome back", user_id)
+    user = get_current_user(session)
+    if user:
+        print(blue + f"\n WELCOME, {user.name}\n")
         menu()
         login_menu()
         print("\n")
         selections()
     else:
         name, password = get_user_login_data()
-        user_id = authentification_initiale(session, name, password)
-
+        authentification_initiale(session, name, password)
         start()
 
 
@@ -46,6 +46,7 @@ def restart_selections(option):
         selections()
     elif int(option) == 2:
         exit()
+
 
 @click.command()
 @click.option('--option', prompt='Your choice',
@@ -93,7 +94,6 @@ def selections(option):
     restart_selections()
 
 
-
 @click.command()
 @click.option('--option', prompt='Your choice',
               help='Select option')
@@ -106,6 +106,7 @@ def restart_selections(option):
 
 # READ
 
+
 def display_contracts():
     if UserPermissions.can_read_contract():
         contracts = session.query(Contract).all()
@@ -116,10 +117,11 @@ def display_contracts():
                                                 contract.event_id).first()
 
             support = session.query(User).filter(User.id
-                                                         == event.support_contact_id).first()
+                                                 == event.support_contact_id).first()
             support_name = support.name if support else "No support assigned"
             client_name = client.name if support else "No Client yet    "
-            print("id:", contract.id, "client:", client_name, "support: ", support_name, "event:", event.name,  "status:", contract.status)
+            print("id:", contract.id, "client:", client_name, "support: ",
+                  support_name, "event:", event.name,  "status:", contract.status)
         return contracts
     else:
         print("🛑 You don't have the permission to create a contract")
@@ -146,11 +148,12 @@ def display_all_contracts():
                                                 contract.event_id).first()
 
             support = session.query(User).filter(User.id
-                                                         == event.support_contact_id).first()
+                                                 == event.support_contact_id).first()
 
             support_name = support.name if support else "No support assigned"
             client_name = client.name if client else "No Client yet"
-            print("id:", contract.id, "client:", client_name, "support: ", support_name, "event:", event.name,  "status:", contract.status)
+            print("id:", contract.id, "client:", client_name, "support: ",
+                  support_name, "event:", event.name,  "status:", contract.status)
         return contracts
     except Exception as e:
         # Alternatively the argument can be omitted
@@ -159,17 +162,18 @@ def display_all_contracts():
         sentry_sdk.capture_exception(e)
         sentry_sdk.capture_message('Something went wrong')
 
+
 def display_my_clients_contracts(current_user):
     try:
 
         clients = session.query(Client).filter(Client.support_id
-                                                        == current_user.id)
+                                               == current_user.id)
         print(current_user.id)
         print(clients)
         for client in clients:
             print("id:", client.id, ",", "name:", client.name, "email:",
-                    client.email, "phone:", client.phone, "company name:",
-                    client.company_name, "support: ", current_user.name)
+                  client.email, "phone:", client.phone, "company name:",
+                  client.company_name, "support: ", current_user.name)
 
         return clients
     except Exception as e:
@@ -178,7 +182,6 @@ def display_my_clients_contracts(current_user):
         print(str(e))
         sentry_sdk.capture_exception(e)
         sentry_sdk.capture_message('Something went wrong')
-
 
 
 def get_and_filter_all_contracts():
@@ -191,10 +194,11 @@ def get_and_filter_all_contracts():
                                                 contract.event_id).first()
 
             support = session.query(User).filter(User.id
-                                                         == event.support_contact_id).first()
+                                                 == event.support_contact_id).first()
             support_name = support.name if support else "No support assigned"
             client_name = client.name if support else "No Client yet    "
-            print("id:", contract.id, "client:", client_name, "support: ", support_name, "event:", event.name,  "status:", contract.status)
+            print("id:", contract.id, "client:", client_name, "support: ",
+                  support_name, "event:", event.name,  "status:", contract.status)
         contract_filters()
         filter_display_contracts()
         return contracts
@@ -215,7 +219,7 @@ def display_all_clients():
     clients = session.query(Client).all()
     for client in clients:
         support = session.query(User).filter(User.id
-                                                     == client.support_id).first()
+                                             == client.support_id).first()
         support_name = support.name if support else "No support assigned"
         print("id:", client.id, ",", "name:", client.name, "email:",
               client.email, "phone:", client.phone, "company name:",
@@ -233,23 +237,24 @@ def display_all_events():
             if choice == "1":
                 events = session.query(Event).all()
             elif choice == "2":
-                events = session.query(Event).filter(Event.support_contact.id is None)
+                events = session.query(Event).filter(
+                    Event.support_contact.id is None)
 
             for event in events:
                 print(f"id:[{event.id}]", ",", "name:", event.name, "start:",
-                    event.start_date, "end:", event.end_date, "location:",
-                    event.location, "attendees:", event.attendees,
-                    "notes:", event.notes)
+                      event.start_date, "end:", event.end_date, "location:",
+                      event.location, "attendees:", event.attendees,
+                      "notes:", event.notes)
 
         elif UserPermissions.can_support_read_events():
             current_user = get_current_user(session)
             events = session.query(Event).filter(current_user.id
-                                                        == event.support_contact.id)
+                                                 == event.support_contact.id)
             for event in events:
                 print(f"id:[{event.id}]", ",", "name:", event.name, "start:",
-                    event.start_date, "end:", event.end_date, "location:",
-                    event.location, "attendees:", event.attendees,
-                    "notes:", event.notes)
+                      event.start_date, "end:", event.end_date, "location:",
+                      event.location, "attendees:", event.attendees,
+                      "notes:", event.notes)
         else:
             print("🛑 You don't have the permission to view events")
 
@@ -309,7 +314,7 @@ def display(contracts):
                                                 contract.event_id).first()
 
             support = session.query(User).filter(User.id
-                                                         == event.support_contact_id).first()
+                                                 == event.support_contact_id).first()
             support_name = support.name if support else "No support assigned"
             print("id:", contract.id, "\n",
                   "\n", "client:", client.name, "\n",
@@ -317,18 +322,23 @@ def display(contracts):
                   "event:", event.name, "\n", "status:", contract.status)
 
 # CREATE
+
+
 @click.command()
 @click.option('--name', prompt='name')
 @click.option('--email', prompt='email')
 @click.option('--phone', prompt='phone')
-def create_user(name, email, phone):
+@click.option('--password', prompt='password')
+def create_user(name, email, phone, password):
     try:
         if UserPermissions.can_create_user():
             roles_options()
             role = input("role: ")
             user = User(
                 name=name, email=email, phone=phone,
+                password=password,
                 role=get_role(int(role)))
+            user.set_password(password)
             session.add(user)
             session.commit()
             print("✅ user successfully created")
@@ -375,13 +385,6 @@ def create_event(name, start, end, location, attendees, notes):
                   notes=notes)
     session.add(event)
     session.commit()
-
-
-def create_event_for_my_client():
-    current_user = get_current_user(session)
-    clients = session.query(Client).filter(Client.support_id == current_user.id)
-    pass
-
 
 
 @click.command()
@@ -495,13 +498,14 @@ def edit_event_support(id, support_contact_id):
     event.support_contact_id = support_contact_id
     session.commit()
 
+
 @click.command()
 @click.option('--id', prompt='select contract to edit')
 def edit_contract(id):
     try:
         if UserPermissions.can_update_contract():
             contract = session.query(Contract).filter(
-            Contract.id == int(id)).first()
+                Contract.id == int(id)).first()
             contract_filters()
 
             status = input(f"Edit current status: ")
@@ -520,7 +524,8 @@ def display_my_contract(id):
     current_user = get_current_user(session)
     try:
         client = session.query(Client).filter(Client.id == int(id)).first()
-        contracts = session.query(Contract).filter(client.support_id == current_user.id).all()
+        contracts = session.query(Contract).filter(
+            client.support_id == current_user.id).all()
         display(contracts)
     except Exception as e:
         print(str(e))
@@ -556,6 +561,7 @@ def delete_user(id):
         print(str(e))
         sentry_sdk.capture_exception(e)
         sentry_sdk.capture_message('Something went wrong')
+
 
 if __name__ == '__main__':
     start()

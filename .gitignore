@@ -1,5 +1,7 @@
 env
+.env
 .vscode
 **.db
 /db/*.sqlite3
 __pycache__
+sessions.pkl

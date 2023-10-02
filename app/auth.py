@@ -1,6 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 from app.models import User
-import pickle, os
+import pickle
+import os
 
 SESSION_FILE = "sessions.pkl"
 
@@ -26,11 +27,15 @@ def authenticate_user(session, name, password):
 
 
 def get_current_user(session):
-    file = recuperer_session()
-    user_id = file.split("_")[0]
-    user = session.query(User).filter_by(name=user_id).one()
-    print("get_current_user", user)
-    return user
+    try:
+        file = recuperer_session()
+        if file:
+            user_id = file.split("_")[0]
+            user = session.query(User).filter_by(name=user_id).one()
+            print("get_current_user", user)
+            return user
+    except NoResultFound:
+        pass
 
 
 def sauvegarder_session(session_id, user_id):
@@ -47,6 +52,7 @@ def recuperer_session():
             return pickle.load(file)
     except FileNotFoundError:
         return None
+
 
 def authentification_initiale(session, name, password):
     # Authentification initiale
@@ -75,7 +81,7 @@ def auto_login(session):
 def is_admin(session, user_id):
     user = session.query(User).filter_by(id=user_id).one()
     if user:
-        return  user.role
+        return user.role
     else:
         return None
 

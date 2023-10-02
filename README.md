@@ -26,9 +26,5 @@ pip install -r requirements.txt
 ## Démarrage
 * Lancer le script à l'aide de la commande suivante : `python main.py`
 
-## Authentification
+## Couverture de test sentry
 
-```
-export USER='sandra'
-export PSW='test123'
-```

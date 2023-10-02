@@ -2,13 +2,8 @@
 import click
 import os
 import bcrypt
-import hashlib
-import base64
 
-
-from app.models import Contract, Event, Client, User
-from crud import  create_clients, create_events, create_contracts, create_users
-from app.config import session
+from crud import create_clients, create_events, create_contracts, create_users
 
 import sentry_sdk
 

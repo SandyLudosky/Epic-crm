@@ -3,6 +3,17 @@ from app.models import User, ROLE, STATUS
 from sqlalchemy import literal_column
 
 
+
+bcolors = {
+    "header": '\033[95m',
+    "blue": '\033[94m',
+    "cyan": '\033[96m',
+    "green": '\033[92m',
+    "yellow": '\033[93m',
+    "white": '\033[37m'
+}
+
+
 def display_contract_status(value):
     if int(value) == 1:
         return STATUS["CREATED"]
