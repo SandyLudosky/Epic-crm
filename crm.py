@@ -109,6 +109,8 @@ def restart_selections(option):
 
 def display_contracts():
     if UserPermissions.can_read_contract():
+        print("🛑 You don't have the permission to create a contract")
+    else:
         contracts = session.query(Contract).all()
         for contract in contracts:
             client = session.query(Client).filter(Client.id ==
@@ -123,8 +125,6 @@ def display_contracts():
             print("id:", contract.id, "client:", client_name, "support: ",
                   support_name, "event:", event.name,  "status:", contract.status)
         return contracts
-    else:
-        print("🛑 You don't have the permission to create a contract")
 
 
 def display_contracts():

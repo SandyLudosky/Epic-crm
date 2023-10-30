@@ -11,7 +11,6 @@ class UserPermissions:
     @staticmethod
     def can_create_user() -> bool:
         current_user = get_current_user()
-        print(current_user.name)
         return True if current_user.role == ROLE["MANAGER"] else False
 
     @staticmethod
@@ -74,9 +73,10 @@ class UserPermissions:
         return True if current_user.role == ROLE["MANAGER"] else False
 
     @staticmethod
-    def can_update_event() -> bool:
+    def can_create_event() -> bool:
         pass
 
     @staticmethod
-    def can_delete_event() -> bool:
-        pass
+    def can_update_event() -> bool:
+        current_user = get_current_user(session)
+        return True if current_user.role == ROLE["SALES"] else False
