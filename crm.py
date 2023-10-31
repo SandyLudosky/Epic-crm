@@ -137,6 +137,7 @@ def display_contracts():
             display_all_contracts()
         else:
             print("🛑 You don't have the permission to read a contract")
+            return
 
 
 def display_all_contracts():
@@ -205,6 +206,7 @@ def get_and_filter_all_contracts():
         return contracts
     else:
         print("🛑 You don't have the permission to create a contract")
+        return
 
 
 def display_all_users():
@@ -256,6 +258,7 @@ def display_all_events():
                     print("No events found.")
         else:
             print("🛑 You don't have the permission to view events")
+            return
 
     except Exception as e:
         # Alternatively the argument can be omitted
@@ -343,6 +346,8 @@ def create_user(name, email, phone, password):
             print("✅ user successfully created")
         else:
             print("🛑 You don't have the permission to create a user")
+            return
+
     except Exception as e:
         # Alternatively the argument can be omitted
         print("ERROR")
@@ -365,6 +370,7 @@ def create_contract(client_id, event_id, response):
             print("✅ user successfully created")
     else:
         print("🛑 You don't have the permission to create a user")
+        return
 
 
 @click.command()
@@ -401,6 +407,7 @@ def create_client(name, email, phone, company_name):
         print("✅ client successfully created")
     else:
         print("🛑 You don't have the permission to create a client")
+        return
 
 
 # UPDATE
@@ -425,6 +432,7 @@ def edit_user():
         print("✅ user successfully edited")
     else:
         print("🛑 You don't have the permission to edit a user")
+        return
 
 
 @click.command()
@@ -447,6 +455,7 @@ def edit_one_client():
         print("✅ user successfully edited")
     else:
         print("🛑 You don't have the permission to edit a client")
+        return
 
 
 def edit_event():
@@ -518,6 +527,8 @@ def edit_contract(id):
             print("✅ contract successfully edited")
         else:
             print("🛑 You don't have the permission to update a contract")
+            return
+
     except Exception as e:
         print(str(e))
         sentry_sdk.capture_exception(e)
@@ -560,6 +571,8 @@ def delete_user(id):
             print("✅ user successfully deleted")
         else:
             print("🛑 You don't have the permission to edit a user")
+            return
+
     except Exception as e:
         # Alternatively the argument can be omitted
         print("ERROR")
