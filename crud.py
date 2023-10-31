@@ -38,14 +38,14 @@ clients = [
      "phone": '444-340-211',
      'company_name': 'company ABC'
      },
-    {"support": 1,
+    {"support": None,
      "name": 'Melany C',
      "email": 'melc@gmail.com',
      "phone": '416-706-2001',
      'company_name': 'company XYZ'
      },
     {
-        "support": None,
+        "support": 1,
         "name": 'Stephany MacFarland',
         "email": 'sfarland@farland.com',
         "phone": '706-200-111',

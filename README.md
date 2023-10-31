@@ -24,7 +24,13 @@ pip install -r requirements.txt
 ```
 
 ## Démarrage
-* Lancer le script à l'aide de la commande suivante : `python main.py`
+* Lancer le script à l'aide de la commande suivante :
+
+Windows/Linux:
+`python main.py`
+
+MacOS:
+`python3  main.py`
 
 ## Couverture de test sentry
 

@@ -56,7 +56,7 @@ def selections(option):
         create_event()
     elif int(option) == 2:
         display_all_events()
-        edit_event()
+        edit_any_event()
     elif int(option) == 3:
         display_all_events()
     elif int(option) == 4:
@@ -80,7 +80,8 @@ def selections(option):
     elif int(option) == 11:
         create_client()
     elif int(option) == 12:
-        display_my_clients_contracts()
+        current_user = get_current_user(session)
+        display_my_clients_contracts(current_user)
         edit_one_client()
     elif int(option) == 13:
         display_all_clients()
@@ -231,30 +232,28 @@ def display_all_clients():
 def display_all_events():
     try:
         if UserPermissions.can_manager_read_events():
-            display_events_menu()
-            choice = input("Your choice: ")
-            events = []
-            if choice == "1":
-                events = session.query(Event).all()
-            elif choice == "2":
-                events = session.query(Event).filter(
-                    Event.support_contact.id is None)
-
+            events = session.query(Event).all()
             for event in events:
-                print(f"id:[{event.id}]", ",", "name:", event.name, "start:",
+                support_contact_id = event.support_contact_id is None
+                contact_support = "NO SUPPORT ASSIGNED" if support_contact_id else event.support_contact_id
+
+                print(f"id:[{event.id}]", ",", "support:", contact_support,
+                      "name:", event.name, "start:",
                       event.start_date, "end:", event.end_date, "location:",
                       event.location, "attendees:", event.attendees,
                       "notes:", event.notes)
 
         elif UserPermissions.can_support_read_events():
             current_user = get_current_user(session)
-            events = session.query(Event).filter(current_user.id
-                                                 == event.support_contact.id)
+            events = session.query(Event).all()
             for event in events:
-                print(f"id:[{event.id}]", ",", "name:", event.name, "start:",
-                      event.start_date, "end:", event.end_date, "location:",
-                      event.location, "attendees:", event.attendees,
-                      "notes:", event.notes)
+                if event.support_contact_id == current_user.id:
+                    print(f"id:[{event.id}]", ",", "name:", event.name, "start:",
+                          event.start_date, "end:", event.end_date, "location:",
+                          event.location, "attendees:", event.attendees,
+                          "notes:", event.notes)
+                else:
+                    print("No events found.")
         else:
             print("🛑 You don't have the permission to view events")
 
@@ -451,8 +450,7 @@ def edit_one_client():
 
 
 def edit_event():
-    current_user = get_current_user(session)
-    if UserPermissions.can_display_events_without_support(current_user):
+    if UserPermissions.can_display_events_without_support():
         edit_event_with_no_support()
     else:
         edit_any_event()
@@ -460,22 +458,28 @@ def edit_event():
 
 @click.command()
 @click.option('--id', prompt='select event to edit')
-@click.option('--name', prompt='name')
-@click.option('--start', prompt='start date')
-@click.option('--end', prompt='end date')
-@click.option('--location', prompt='location')
-@click.option('--attendees', prompt='number of attendees')
-@click.option('--notes', prompt='notes or description')
-@click.option('--status', prompt='notes or descript1ion')
-def edit_any_event(id, name, start, end, location, attendees, notes, status):
+def edit_any_event(id):
     event = session.query(Event).filter(Event.id == int(id)).first()
-    event.name = name
-    event.start = datetime.datetime.strptime(start, '%Y-%m-%d')
-    event.end = datetime.datetime.strptime(end, '%Y-%m-%d')
-    event.location = location
-    event.attendees = int(attendees)
-    event.notes = notes
-    event.status = status
+
+    name = input(f"name({event.name}): ")
+    display_all_users()
+    support_id = input(f"select support ({event.support_contact_id}): ")
+    start = input(f"phone({event.start_date}): ")
+    end = input(f"company name({event.end_date}): ")
+    location = input(f"location ({event.location}): ")
+    attendees = input(f"attendeed({event.attendees}): ")
+    notes = input(f"notes({event.notes}): ")
+
+    event.name = name  # Assuming 'name' is defined elsewhere in your code
+    event.support_contact_id = support_id if support_id else event.support_contact_id
+    event.start_date = datetime.datetime.strptime(
+        start, '%Y-%m-%d') if start else event.start_date
+    event.end_date = datetime.datetime.strptime(
+        end, '%Y-%m-%d') if end else event.end_date
+    event.location = location if location else event.location
+    event.attendees = int(
+        attendees) if attendees else event.attendees  # Fixed line
+    event.notes = notes if notes else event.notes
     session.commit()
 
 
@@ -550,9 +554,10 @@ def edit_contract_my_clients(id, status):
 def delete_user(id):
     try:
         if UserPermissions.can_delete_user():
-            session.query(User).delete(User.id == int(id))
+            session.query(User).filter(User.id == int(id)).delete(
+                synchronize_session='evaluate')
             session.commit()
-            print("✅ user successfully edited")
+            print("✅ user successfully deleted")
         else:
             print("🛑 You don't have the permission to edit a user")
     except Exception as e:

@@ -4,9 +4,9 @@ from sqlalchemy.orm import sessionmaker
 import sentry_sdk
 
 
-sentry = os.environ.get("SENTRY")
+SENTRY = os.environ.get("SENTRY")
 sentry_sdk.init(
-    dsn=sentry,
+    dsn=SENTRY,
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     traces_sample_rate=1.0,

@@ -32,7 +32,6 @@ def get_current_user(session):
         if file:
             user_id = file.split("_")[0]
             user = session.query(User).filter_by(name=user_id).one()
-            print("get_current_user", user)
             return user
     except NoResultFound:
         pass
