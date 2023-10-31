@@ -22,8 +22,21 @@ cd 4425126-testing-python
 ```
 pip install -r requirements.txt
 ```
+### 4. Définir les variables d'environnement
 
-## Démarrage
+.env file:
+```
+export DB="your-database-connection-string"
+export SENTRY="your-sentry-connection-string"
+```
+
+add to .bashrc or .zshrc:
+```
+export DB="your-database-connection-string"
+export SENTRY="your-sentry-connection-string"
+```
+
+## 5. Pour créer les tables et insérer les données dans la base de données
 * Lancer le script à l'aide de la commande suivante :
 
 Windows/Linux:
@@ -31,6 +44,15 @@ Windows/Linux:
 
 MacOS:
 `python3  main.py`
+
+## Démarrage
+* Lancer le script à l'aide de la commande suivante :
+
+Windows/Linux:
+`python crm.py`
+
+MacOS:
+`python3 crm.py`
 
 ## Couverture de test sentry
 
