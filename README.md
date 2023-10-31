@@ -34,3 +34,7 @@ MacOS:
 
 ## Couverture de test sentry
 
+[View all issues](https://not-applicable-p0.sentry.io/issues/?project=4505981446782976)
+![Couverture Sentry](./img/sentry.png)
+
+
