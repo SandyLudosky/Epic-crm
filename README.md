@@ -22,8 +22,21 @@ cd 4425126-testing-python
 ```
 pip install -r requirements.txt
 ```
+
+* les dépendances sont listées dans le fichier requirements.txt
+
+**bibliothèques utilisées :**
+* **bcrypt** : pour le hashage des mots de passe
+* **click** : pour la création de commandes
+* **colorama** : pour la coloration de la console
+* **SQLAlchemy** : pour la gestion de la base de données
+* **faker** : pour la génération de données aléatoires
+* **faker_sqlalchemy** : pour la génération de données aléatoires
+
+
 ### 4. Définir les variables d'environnement
 
+* Créer un fichier .env à la racine du projet
 .env file:
 ```
 export DB="your-database-connection-string"
@@ -36,7 +49,14 @@ export DB="your-database-connection-string"
 export SENTRY="your-sentry-connection-string"
 ```
 
-## 5. Pour créer les tables et insérer les données dans la base de données
+### 5. Connecter à la base de données
+
+fichier app/config.py:
+```
+engine = create_engine(os.environ.get("DB"), echo=False)
+```
+
+## 6. Pour créer les tables et insérer les données dans la base de données
 * Lancer le script à l'aide de la commande suivante :
 
 Windows/Linux:
